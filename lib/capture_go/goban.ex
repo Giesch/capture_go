@@ -3,8 +3,11 @@ defmodule CaptureGo.Goban do
 
   alias CaptureGo.Goban
 
-  defstruct board: Map.new(), turn: :black, winner: nil
-  @opaque t :: %__MODULE__{}
+  defstruct board: Map.new(),
+            turn: :black,
+            winner: nil,
+            whites_prisoners: 0,
+            blacks_prisoners: 0
 
   def new() do
     %Goban{}
@@ -60,6 +63,18 @@ defmodule CaptureGo.Goban do
       end)
       |> Enum.filter(fn {_point, color} -> is_color?(color) end)
 
+    goban = mark_captures(to_check, goban)
+    {board, whites_prisoners, blacks_prisoners} = remove_captures(goban)
+
+    %Goban{
+      goban
+      | board: board,
+        whites_prisoners: whites_prisoners,
+        blacks_prisoners: blacks_prisoners
+    }
+  end
+
+  defp mark_captures(to_check, goban) do
     Enum.reduce(to_check, goban, fn {point, color}, goban ->
       case liberties_check(goban, point) do
         {:alive, _stones, _liberties} ->
@@ -67,17 +82,43 @@ defmodule CaptureGo.Goban do
 
         {:dead, stones} ->
           board =
-            Enum.into(goban.board, %{}, fn {point, color} ->
-              if MapSet.member?(stones, point) do
-                {point, :dead}
-              else
-                {point, color}
-              end
+            goban.board
+            |> Enum.map(fn
+              # TODO this is unnecessary i guess
+              {point, {:dead, color}} ->
+                {point, {:dead, color}}
+
+              {point, color} ->
+                if MapSet.member?(stones, point) do
+                  {point, {:dead, color}}
+                else
+                  {point, color}
+                end
             end)
+            |> Enum.into(%{})
 
           %Goban{goban | board: board, winner: opposite_color(color)}
       end
     end)
+  end
+
+  defp remove_captures(goban) do
+    Enum.reduce(
+      goban.board,
+      {goban.board, goban.whites_prisoners, goban.blacks_prisoners},
+      fn intersection, {board, whites_prisoners, blacks_prisoners} = results ->
+        case intersection do
+          {point, {:dead, :white}} ->
+            {Map.delete(board, point), whites_prisoners, blacks_prisoners + 1}
+
+          {point, {:dead, :black}} ->
+            {Map.delete(board, point), whites_prisoners + 1, blacks_prisoners}
+
+          _ ->
+            results
+        end
+      end
+    )
   end
 
   # this assumes there's a stone at point

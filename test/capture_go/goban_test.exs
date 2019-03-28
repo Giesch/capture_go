@@ -63,7 +63,9 @@ defmodule CaptureGo.GobanTest do
 
   test "a stone in the center is captured when it has no liberties" do
     goban = white_wins()
-    assert Goban.stone_at(goban, {4, 4}) == {:ok, :dead}
+    # assert Goban.stone_at(goban, {4, 4}) == {:ok, :dead}
+    assert Goban.stone_at(goban, {4, 4}) == {:ok, nil}
+    assert goban.whites_prisoners == 1
   end
 
   test "a stone on the side is captured when it has no liberties" do
@@ -74,7 +76,9 @@ defmodule CaptureGo.GobanTest do
     assert {:ok, goban} = goban |> Goban.move(:black, {8, 7})
     assert {:ok, goban} = goban |> Goban.move(:white, {4, 1})
 
-    assert Goban.stone_at(goban, {4, 0}) == {:ok, :dead}
+    # assert Goban.stone_at(goban, {4, 0}) == {:ok, :dead}
+    assert Goban.stone_at(goban, {4, 0}) == {:ok, nil}
+    assert goban.whites_prisoners == 1
   end
 
   test "a stone in the corner is captured when it has no liberties" do
@@ -83,7 +87,9 @@ defmodule CaptureGo.GobanTest do
     assert {:ok, goban} = goban |> Goban.move(:black, {8, 8})
     assert {:ok, goban} = goban |> Goban.move(:white, {0, 1})
 
-    assert Goban.stone_at(goban, {0, 0}) == {:ok, :dead}
+    # assert Goban.stone_at(goban, {0, 0}) == {:ok, :dead}
+    assert Goban.stone_at(goban, {0, 0}) == {:ok, nil}
+    assert goban.whites_prisoners == 1
   end
 
   test "capturing a stone wins the game" do
