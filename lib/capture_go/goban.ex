@@ -4,6 +4,7 @@ defmodule CaptureGo.Goban do
   alias CaptureGo.Goban
 
   defstruct board: Map.new(),
+            size: 9,
             turn: :black,
             winner: nil,
             whites_prisoners: 0,
@@ -31,7 +32,7 @@ defmodule CaptureGo.Goban do
 
   def stone_at(goban, point) do
     cond do
-      off_the_board?(point) -> {:error, :off_board}
+      off_the_board?(goban, point) -> {:error, :off_board}
       true -> {:ok, Map.get(goban.board, point)}
     end
   end
@@ -40,14 +41,14 @@ defmodule CaptureGo.Goban do
     cond do
       goban.turn != color -> {:error, :wrong_turn}
       goban.winner -> {:error, :game_over}
-      off_the_board?(point) -> {:error, :off_board}
+      off_the_board?(goban, point) -> {:error, :off_board}
       point_taken?(goban, point) -> {:error, :point_taken}
       true -> {:ok, goban}
     end
   end
 
-  defp off_the_board?({x, y}) do
-    x < 0 || x > 8 || y < 0 || y > 8
+  defp off_the_board?(goban, {x, y}) do
+    x < 0 || x > goban.size - 1 || y < 0 || y > goban.size - 1
   end
 
   defp point_taken?(goban, point) do
@@ -56,7 +57,7 @@ defmodule CaptureGo.Goban do
 
   defp perform_captures(goban, point) do
     to_check =
-      [point | neighboring_points(point)]
+      [point | neighboring_points(goban, point)]
       |> Enum.map(fn point ->
         {:ok, color} = stone_at(goban, point)
         {point, color}
@@ -126,14 +127,14 @@ defmodule CaptureGo.Goban do
     {:ok, color} = stone_at(goban, point)
 
     friendly_neighbors = fn point ->
-      neighboring_points(point)
+      neighboring_points(goban, point)
       |> Enum.filter(fn point ->
         {:ok, color} == stone_at(goban, point)
       end)
     end
 
     empty_neighbors = fn point ->
-      neighboring_points(point)
+      neighboring_points(goban, point)
       |> Enum.filter(fn point ->
         {:ok, nil} == stone_at(goban, point)
       end)
@@ -172,8 +173,8 @@ defmodule CaptureGo.Goban do
     end
   end
 
-  defp neighboring_points(point) do
+  defp neighboring_points(goban, point) do
     [up(point), down(point), left(point), right(point)]
-    |> Enum.filter(fn point -> !off_the_board?(point) end)
+    |> Enum.filter(fn point -> !off_the_board?(goban, point) end)
   end
 end
