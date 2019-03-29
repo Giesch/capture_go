@@ -1,5 +1,6 @@
 defmodule CaptureGo.Goban do
   alias CaptureGo.Goban
+  import CaptureGo.Color
 
   defstruct board: Map.new(),
             size: 9,
@@ -60,7 +61,7 @@ defmodule CaptureGo.Goban do
         {:ok, color} = stone_at(goban, point)
         {point, color}
       end)
-      |> Enum.filter(fn {_point, color} -> is_color?(color) end)
+      |> Enum.filter(fn {_point, color} -> is_color(color) end)
 
     goban = mark_captures(to_check, goban)
     {board, whites_prisoners, blacks_prisoners} = remove_captures(goban)
@@ -175,13 +176,6 @@ defmodule CaptureGo.Goban do
     [up(point), down(point), left(point), right(point)]
     |> Enum.filter(fn point -> on_the_board?(goban, point) end)
   end
-
-  def opposite_color(:black), do: :white
-  def opposite_color(:white), do: :black
-
-  def is_color?(:black), do: true
-  def is_color?(:white), do: true
-  def is_color?(_), do: false
 
   def up({x, y}), do: {x, y - 1}
   def down({x, y}), do: {x, y + 1}
