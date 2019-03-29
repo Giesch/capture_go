@@ -30,7 +30,7 @@ defmodule CaptureGo.Goban do
 
   def stone_at(goban, point) do
     cond do
-      off_the_board?(goban, point) -> {:error, :off_board}
+      !on_the_board?(goban, point) -> {:error, :off_board}
       true -> {:ok, Map.get(goban.board, point)}
     end
   end
@@ -39,14 +39,14 @@ defmodule CaptureGo.Goban do
     cond do
       goban.turn != color -> {:error, :wrong_turn}
       goban.winner -> {:error, :game_over}
-      off_the_board?(goban, point) -> {:error, :off_board}
+      !on_the_board?(goban, point) -> {:error, :off_board}
       point_taken?(goban, point) -> {:error, :point_taken}
       true -> {:ok, goban}
     end
   end
 
-  defp off_the_board?(goban, {x, y}) do
-    x < 0 || x > goban.size - 1 || y < 0 || y > goban.size - 1
+  defp on_the_board?(goban, {x, y}) do
+    x >= 0 && x < goban.size && y >= 0 && y < goban.size
   end
 
   defp point_taken?(goban, point) do
@@ -173,7 +173,7 @@ defmodule CaptureGo.Goban do
 
   defp neighboring_points(goban, point) do
     [up(point), down(point), left(point), right(point)]
-    |> Enum.filter(fn point -> !off_the_board?(goban, point) end)
+    |> Enum.filter(fn point -> on_the_board?(goban, point) end)
   end
 
   def opposite_color(:black), do: :white
