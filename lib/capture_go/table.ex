@@ -39,7 +39,7 @@ defmodule CaptureGo.Table do
   end
 
   def challenge(%Table{state: state}, _token, _color, _opts) do
-    {:error, {:invalid_for_state, state}}
+    invalid_for_state(state)
   end
 
   defp start_game(table, token, color) do
@@ -62,6 +62,13 @@ defmodule CaptureGo.Table do
   end
 
   def host_cancel(%Table{state: state}, _token) do
+    invalid_for_state(state)
+  end
+
+  defp invalid_for_state(state) do
     {:error, {:invalid_for_state, state}}
   end
+
+  # TODO game over state
+  # player left
 end
