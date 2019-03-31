@@ -49,45 +49,36 @@ defmodule CaptureGo.GobanTest do
     assert {:error, :wrong_turn} == goban |> Goban.move(:white, {3, 3})
   end
 
-  def white_wins() do
-    assert {:ok, goban} = Goban.new() |> Goban.move(:black, {4, 4})
-    assert {:ok, goban} = goban |> Goban.move(:white, {3, 4})
-    assert {:ok, goban} = goban |> Goban.move(:black, {0, 0})
-    assert {:ok, goban} = goban |> Goban.move(:white, {5, 4})
-    assert {:ok, goban} = goban |> Goban.move(:black, {0, 1})
-    assert {:ok, goban} = goban |> Goban.move(:white, {4, 3})
-    assert {:ok, goban} = goban |> Goban.move(:black, {0, 2})
-    assert {:ok, goban} = goban |> Goban.move(:white, {4, 5})
-    goban
-  end
-
   test "a stone in the center is captured when it has no liberties" do
     goban = white_wins()
-    # assert Goban.stone_at(goban, {4, 4}) == {:ok, :dead}
     assert Goban.stone_at(goban, {4, 4}) == {:ok, nil}
     assert goban.whites_prisoners == 1
   end
 
   test "a stone on the side is captured when it has no liberties" do
-    assert {:ok, goban} = Goban.new() |> Goban.move(:black, {4, 0})
-    assert {:ok, goban} = goban |> Goban.move(:white, {3, 0})
-    assert {:ok, goban} = goban |> Goban.move(:black, {8, 8})
-    assert {:ok, goban} = goban |> Goban.move(:white, {5, 0})
-    assert {:ok, goban} = goban |> Goban.move(:black, {8, 7})
-    assert {:ok, goban} = goban |> Goban.move(:white, {4, 1})
+    goban =
+      play_game([
+        {:black, {4, 0}},
+        {:white, {3, 0}},
+        {:black, {8, 8}},
+        {:white, {5, 0}},
+        {:black, {8, 7}},
+        {:white, {4, 1}}
+      ])
 
-    # assert Goban.stone_at(goban, {4, 0}) == {:ok, :dead}
     assert Goban.stone_at(goban, {4, 0}) == {:ok, nil}
     assert goban.whites_prisoners == 1
   end
 
   test "a stone in the corner is captured when it has no liberties" do
-    assert {:ok, goban} = Goban.new() |> Goban.move(:black, {0, 0})
-    assert {:ok, goban} = goban |> Goban.move(:white, {1, 0})
-    assert {:ok, goban} = goban |> Goban.move(:black, {8, 8})
-    assert {:ok, goban} = goban |> Goban.move(:white, {0, 1})
+    goban =
+      play_game([
+        {:black, {0, 0}},
+        {:white, {1, 0}},
+        {:black, {8, 8}},
+        {:white, {0, 1}}
+      ])
 
-    # assert Goban.stone_at(goban, {0, 0}) == {:ok, :dead}
     assert Goban.stone_at(goban, {0, 0}) == {:ok, nil}
     assert goban.whites_prisoners == 1
   end
@@ -100,5 +91,55 @@ defmodule CaptureGo.GobanTest do
   test "you can't make moves when the game is over" do
     goban = white_wins()
     assert {:error, :game_over} == goban |> Goban.move(:black, {8, 8})
+  end
+
+  test "if capturing creates a liberty, the move is legal" do
+    goban =
+      play_game([
+        {:black, {1, 0}},
+        {:white, {2, 0}},
+        {:black, {0, 1}},
+        {:white, {1, 1}},
+        {:black, {8, 8}},
+        {:white, {0, 0}}
+      ])
+
+    expected_white_stones = MapSet.new([{0, 0}, {2, 0}, {1, 1}])
+    expected_black_stones = MapSet.new([{0, 1}, {8, 8}])
+
+    assert all_stones(goban, :white) == expected_white_stones
+    assert all_stones(goban, :black) == expected_black_stones
+    assert goban.whites_prisoners == 1
+    assert goban.blacks_prisoners == 0
+  end
+
+  def white_wins() do
+    play_game([
+      {:black, {4, 4}},
+      {:white, {3, 4}},
+      {:black, {0, 0}},
+      {:white, {5, 4}},
+      {:black, {0, 1}},
+      {:white, {4, 3}},
+      {:black, {0, 2}},
+      {:white, {4, 5}}
+    ])
+  end
+
+  def play_game(move_list) do
+    Enum.reduce(move_list, Goban.new(), fn {color, point}, goban ->
+      assert {:ok, goban} = Goban.move(goban, color, point)
+      goban
+    end)
+  end
+
+  def all_stones(%Goban{points_to_groups: points_to_groups}, color) do
+    points_to_groups
+    |> Map.values()
+    |> MapSet.new()
+    |> Enum.filter(fn group -> group.color == color end)
+    |> Enum.reduce(MapSet.new(), fn group, stones ->
+      MapSet.union(stones, group.stones)
+    end)
   end
 end

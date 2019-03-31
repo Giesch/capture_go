@@ -65,10 +65,12 @@ defmodule CaptureGo.Table do
     invalid_for_state(state)
   end
 
+  # TODO game over state
+  # functions for making moves
+  # game over checks in the make move function
+  # player left
+
   defp invalid_for_state(state) do
     {:error, {:invalid_for_state, state}}
   end
-
-  # TODO game over state
-  # player left
 end
