@@ -2,6 +2,7 @@ defmodule CaptureGo.GobanTest do
   use ExUnit.Case, async: true
 
   alias CaptureGo.Goban
+  alias CaptureGo.GroupData
 
   test "a new goban has correct defaults" do
     goban = Goban.new()
@@ -159,10 +160,9 @@ defmodule CaptureGo.GobanTest do
     end)
   end
 
-  def all_stones(%Goban{points_to_groups: points_to_groups}, color) do
-    points_to_groups
-    |> Map.values()
-    |> MapSet.new()
+  def all_stones(%Goban{group_data: group_data}, color) do
+    group_data
+    |> GroupData.groups()
     |> Enum.filter(fn group -> group.color == color end)
     |> Enum.reduce(MapSet.new(), fn group, stones ->
       MapSet.union(stones, group.stones)

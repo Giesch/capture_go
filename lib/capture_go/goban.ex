@@ -1,39 +1,39 @@
 defmodule CaptureGo.Goban do
+  @moduledoc """
+  A data type for the go board
+  """
+
   import CaptureGo.Color
   alias CaptureGo.Goban
   alias CaptureGo.StoneGroup
   alias CaptureGo.Prisoners
+  alias CaptureGo.GroupData
 
   defstruct board: Map.new(),
             size: 9,
             turn: :black,
             winner: nil,
-            points_to_groups: Map.new(),
-            prisoners: Prisoners.new()
+            prisoners: Prisoners.new(),
+            group_data: GroupData.new()
 
-  def new() do
-    %Goban{}
-  end
+  def new(), do: %Goban{}
 
-  def move(goban, color, point) do
+  def move(%Goban{} = goban, color, point) when is_color(color) do
     case validate_move(goban, color, point) do
-      {:ok, goban} -> {:ok, place_stone(goban, color, point)}
-      failure -> failure
+      :ok -> {:ok, place_stone(goban, color, point)}
+      error -> error
     end
   end
 
-  def stone_at(goban, point) do
+  def stone_at(%Goban{} = goban, point) do
     cond do
       !on_the_board?(goban, point) -> {:error, :off_board}
       true -> {:ok, Map.get(goban.board, point)}
     end
   end
 
-  def legal?(goban, color, point) do
-    case validate_move(goban, color, point) do
-      {:ok, _} -> true
-      _ -> false
-    end
+  def legal?(%Goban{} = goban, color, point) when is_color(color) do
+    :ok == validate_move(goban, color, point)
   end
 
   ###########################################
@@ -45,83 +45,33 @@ defmodule CaptureGo.Goban do
       !on_the_board?(goban, point) -> {:error, :off_board}
       !point_empty?(goban, point) -> {:error, :point_taken}
       is_suicide?(goban, point) -> {:error, :suicide}
-      true -> {:ok, goban}
+      true -> :ok
     end
   end
 
   defp place_stone(%Goban{} = goban, color, point) do
-    adjacent_enemy_groups = neighboring_groups(goban, opposite_color(color), point)
-
-    new_group =
-      StoneGroup.new(
-        color,
-        MapSet.new([point]),
-        immediate_liberties(goban, point)
-      )
-
-    full_group =
-      neighboring_groups(goban, color, point)
-      |> Enum.reduce(new_group, fn neighboring_group, group ->
-        StoneGroup.merge(group, neighboring_group)
-      end)
-
-    goban =
-      Enum.reduce(adjacent_enemy_groups, goban, fn enemy_group, goban ->
-        enemy_group = StoneGroup.remove_liberty(enemy_group, point)
-        update_points_to_groups(goban, enemy_group)
-      end)
-
     %Goban{goban | board: Map.put(goban.board, point, color)}
-    |> update_points_to_groups(full_group)
+    |> create_and_connect_group(color, point)
+    |> remove_enemy_liberties(color, point)
     |> perform_captures()
     |> win_check()
     |> flip_turn()
   end
 
-  defp update_points_to_groups(
-         %Goban{points_to_groups: points_to_groups} = goban,
-         %StoneGroup{stones: stones} = group
-       ) do
-    points_to_groups =
-      Enum.reduce(stones, points_to_groups, fn point, points_to_groups ->
-        Map.put(points_to_groups, point, group)
-      end)
-
-    %Goban{goban | points_to_groups: points_to_groups}
+  defp create_and_connect_group(%Goban{} = goban, color, point) do
+    new_group = StoneGroup.initial(color, point, immediate_liberties(goban, point))
+    groups = neighboring_groups(goban, color, point) |> MapSet.put(new_group)
+    %Goban{goban | group_data: GroupData.merge(goban.group_data, groups)}
   end
 
-  defp immediate_liberties(goban, point) do
-    neighboring_points(goban, point)
-    |> Enum.filter(fn point ->
-      point_empty?(goban, point)
-    end)
-    |> MapSet.new()
-  end
-
-  defp neighbors_with_color(goban, color, point) do
-    neighboring_points(goban, point)
-    |> Enum.filter(fn point ->
-      {:ok, color} == stone_at(goban, point)
-    end)
-  end
-
-  defp neighboring_groups(goban, color, point) do
-    neighbors_with_color(goban, color, point)
-    |> Enum.map(fn neighbor ->
-      Map.get(goban.points_to_groups, neighbor)
-    end)
-    |> MapSet.new()
-  end
-
-  defp flip_turn(goban) do
-    %Goban{goban | turn: opposite_color(goban.turn)}
+  defp remove_enemy_liberties(%Goban{group_data: group_data} = goban, color, point) do
+    groups = neighboring_groups(goban, opposite_color(color), point)
+    %Goban{goban | group_data: GroupData.remove_liberty(group_data, groups, point)}
   end
 
   defp perform_captures(%Goban{} = goban) do
     dead_stones =
-      goban.points_to_groups
-      |> Map.values()
-      |> MapSet.new()
+      GroupData.groups(goban.group_data)
       |> Enum.filter(fn group -> group.color != goban.turn end)
       |> Enum.filter(&StoneGroup.dead?/1)
       |> Enum.reduce(MapSet.new(), fn dead_group, dead_stones ->
@@ -130,41 +80,32 @@ defmodule CaptureGo.Goban do
 
     %Goban{
       goban
-      | points_to_groups: Map.drop(goban.points_to_groups, dead_stones),
+      | group_data: GroupData.drop(goban.group_data, dead_stones),
         board: Map.drop(goban.board, dead_stones),
         prisoners: Prisoners.add(goban.prisoners, goban.turn, MapSet.size(dead_stones))
     }
   end
 
-  defp win_check(goban) do
-    winner =
-      Enum.find([:black, :white], fn color ->
-        Map.get(goban.prisoners, color) > 0
-      end)
-
-    %Goban{goban | winner: winner}
+  defp win_check(%Goban{} = goban) do
+    %Goban{goban | winner: Prisoners.winner(goban.prisoners)}
   end
 
-  defp point_empty?(goban, point) do
+  defp flip_turn(%Goban{} = goban) do
+    %Goban{goban | turn: opposite_color(goban.turn)}
+  end
+
+  defp immediate_liberties(%Goban{} = goban, point) do
+    neighboring_points(goban, point)
+    |> Enum.filter(fn point -> point_empty?(goban, point) end)
+    |> MapSet.new()
+  end
+
+  defp point_empty?(%Goban{} = goban, point) do
     {:ok, stone} = stone_at(goban, point)
     stone == nil
   end
 
-  defp neighboring_points(goban, point) do
-    [up(point), down(point), left(point), right(point)]
-    |> Enum.filter(fn point -> on_the_board?(goban, point) end)
-  end
-
-  defp up({x, y}), do: {x, y - 1}
-  defp down({x, y}), do: {x, y + 1}
-  defp left({x, y}), do: {x - 1, y}
-  defp right({x, y}), do: {x + 1, y}
-
-  defp on_the_board?(goban, {x, y}) do
-    x >= 0 && x < goban.size && y >= 0 && y < goban.size
-  end
-
-  defp is_suicide?(goban, point) do
+  defp is_suicide?(%Goban{} = goban, point) do
     cond do
       has_immediate_liberty?(goban, point) ->
         false
@@ -185,11 +126,11 @@ defmodule CaptureGo.Goban do
 
   # These predicates rely on the order they are called in is_suicide?/2
 
-  defp has_immediate_liberty?(goban, point) do
+  defp has_immediate_liberty?(%Goban{} = goban, point) do
     !Enum.empty?(immediate_liberties(goban, point))
   end
 
-  defp only_enemy_neighbors?(goban, color, point) do
+  defp only_enemy_neighbors?(%Goban{} = goban, color, point) do
     neighboring_points(goban, point)
     |> Enum.all?(fn point ->
       {:ok, neighbor} = stone_at(goban, point)
@@ -197,7 +138,7 @@ defmodule CaptureGo.Goban do
     end)
   end
 
-  defp would_capture?(goban, color, point) do
+  defp would_capture?(%Goban{} = goban, color, point) do
     enemy_atari_groups =
       neighboring_groups(goban, opposite_color(color), point)
       |> Enum.filter(&StoneGroup.in_atari?/1)
@@ -205,11 +146,37 @@ defmodule CaptureGo.Goban do
     !Enum.empty?(enemy_atari_groups)
   end
 
-  defp kills_friendly?(goban, color, point) do
+  defp kills_friendly?(%Goban{} = goban, color, point) do
     friendly_atari_groups =
       neighboring_groups(goban, color, point)
       |> Enum.filter(&StoneGroup.in_atari?/1)
 
     !Enum.empty?(friendly_atari_groups)
+  end
+
+  defp neighboring_groups(%Goban{} = goban, color, point) do
+    neighbors = neighbors_with_color(goban, color, point)
+    GroupData.groups(goban.group_data, neighbors)
+  end
+
+  defp neighbors_with_color(%Goban{} = goban, color, point) do
+    neighboring_points(goban, point)
+    |> Enum.filter(fn point ->
+      {:ok, color} == stone_at(goban, point)
+    end)
+  end
+
+  defp neighboring_points(%Goban{} = goban, point) do
+    [up(point), down(point), left(point), right(point)]
+    |> Enum.filter(fn point -> on_the_board?(goban, point) end)
+  end
+
+  defp up({x, y}), do: {x, y - 1}
+  defp down({x, y}), do: {x, y + 1}
+  defp left({x, y}), do: {x - 1, y}
+  defp right({x, y}), do: {x + 1, y}
+
+  defp on_the_board?(%Goban{} = goban, {x, y}) do
+    x >= 0 && x < goban.size && y >= 0 && y < goban.size
   end
 end

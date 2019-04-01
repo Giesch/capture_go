@@ -1,6 +1,6 @@
 defmodule CaptureGo.StoneGroup do
   @moduledoc """
-  Data type for a connected group of stones
+  A data type for a connected group of stones
   """
 
   import CaptureGo.Color
@@ -10,27 +10,26 @@ defmodule CaptureGo.StoneGroup do
             stones: nil,
             liberties: nil
 
-  def new(color, stones, liberties)
-      when is_color(color) do
+  def new(color, stones, liberties) when is_color(color) do
     %StoneGroup{color: color, stones: stones, liberties: liberties}
+  end
+
+  def initial(color, stone, liberties) when is_color(color) do
+    new(color, MapSet.new([stone]), liberties)
   end
 
   def merge(%StoneGroup{color: color} = a, %StoneGroup{color: color} = b) do
     add_stones(a, b.stones, b.liberties)
   end
 
-  def add_stones(
-        %StoneGroup{color: color, stones: stones, liberties: liberties},
-        new_stones,
-        new_liberties
-      ) do
-    stones = MapSet.union(stones, new_stones)
+  def add_stones(%StoneGroup{} = group, new_stones, new_liberties) do
+    stones = MapSet.union(group.stones, new_stones)
 
     liberties =
-      MapSet.union(liberties, new_liberties)
+      MapSet.union(group.liberties, new_liberties)
       |> MapSet.difference(stones)
 
-    new(color, stones, liberties)
+    new(group.color, stones, liberties)
   end
 
   def dead?(%StoneGroup{liberties: liberties}) do

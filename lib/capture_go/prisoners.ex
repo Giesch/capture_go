@@ -7,14 +7,15 @@ defmodule CaptureGo.Prisoners do
   import CaptureGo.Color
   alias CaptureGo.Prisoners
 
-  defstruct black: 0,
-            white: 0
+  defstruct black: 0, white: 0
 
-  def new() do
-    %Prisoners{}
-  end
+  def new(), do: %Prisoners{}
 
   def add(prisoners, color, amount) when is_color(color) do
     Map.update!(prisoners, color, fn p -> p + amount end)
+  end
+
+  def winner(prisoners) do
+    Enum.find([:black, :white], fn color -> Map.get(prisoners, color) > 0 end)
   end
 end
