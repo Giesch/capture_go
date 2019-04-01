@@ -93,6 +93,32 @@ defmodule CaptureGo.GobanTest do
     assert {:error, :game_over} == goban |> Goban.move(:black, {8, 8})
   end
 
+  test "suicide with one stone is illegal" do
+    goban =
+      play_game([
+        {:black, {0, 1}},
+        {:white, {8, 8}},
+        {:black, {1, 0}}
+      ])
+
+    assert Goban.legal?(goban, :white, {0, 0}) == false
+    assert {:error, :suicide} == goban |> Goban.move(:white, {0, 0})
+  end
+
+  test "suicide with multiple stones is illegal" do
+    goban =
+      play_game([
+        {:black, {0, 1}},
+        {:white, {0, 0}},
+        {:black, {1, 1}},
+        {:white, {8, 8}},
+        {:black, {2, 0}}
+      ])
+
+    assert Goban.legal?(goban, :white, {1, 0}) == false
+    assert {:error, :suicide} == goban |> Goban.move(:white, {1, 0})
+  end
+
   test "if capturing creates a liberty, the move is legal" do
     goban =
       play_game([

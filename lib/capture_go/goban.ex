@@ -7,10 +7,10 @@ defmodule CaptureGo.Goban do
             size: 9,
             turn: :black,
             winner: nil,
+            # TODO make this a prisoners map with two color keys
             whites_prisoners: 0,
             blacks_prisoners: 0,
-            points_to_groups: Map.new(),
-            illegal_moves: MapSet.new()
+            points_to_groups: Map.new()
 
   def new() do
     %Goban{}
@@ -19,7 +19,7 @@ defmodule CaptureGo.Goban do
   def move(goban, color, point) do
     case validate_move(goban, color, point) do
       {:ok, goban} -> {:ok, place_stone(goban, color, point)}
-      {:error, reason} -> {:error, reason}
+      failure -> failure
     end
   end
 
@@ -30,8 +30,11 @@ defmodule CaptureGo.Goban do
     end
   end
 
-  def illegal?(_goban, _point) do
-    false
+  def legal?(goban, color, point) do
+    case validate_move(goban, color, point) do
+      {:ok, _} -> true
+      _ -> false
+    end
   end
 
   ###########################################
@@ -42,7 +45,7 @@ defmodule CaptureGo.Goban do
       goban.winner -> {:error, :game_over}
       !on_the_board?(goban, point) -> {:error, :off_board}
       !point_empty?(goban, point) -> {:error, :point_taken}
-      MapSet.member?(goban.illegal_moves, point) -> {:error, :illegal_move}
+      is_suicide?(goban, point) -> {:error, :suicide}
       true -> {:ok, goban}
     end
   end
@@ -74,7 +77,6 @@ defmodule CaptureGo.Goban do
     |> perform_captures()
     |> win_check()
     |> flip_turn()
-    |> put_illegal_moves()
   end
 
   defp update_points_to_groups(
@@ -114,26 +116,6 @@ defmodule CaptureGo.Goban do
 
   defp flip_turn(goban) do
     %Goban{goban | turn: opposite_color(goban.turn)}
-  end
-
-  defp put_illegal_moves(%Goban{} = goban) do
-    # TODO this doesn't account for adding a liberty
-    # TODO check if it will capture?
-    # TODO public api for this, so UI can display
-
-    illegal_moves = goban.illegal_moves
-    # Map.values(points_to_groups)
-    # |> MapSet.new()
-    # |> Enum.filter(&StoneGroup.in_atari?/1)
-    # # filter will_capture?
-    # |> Enum.filter(fn group ->
-    #   group.color == color
-    # end)
-    # |> Enum.reduce(MapSet.new(), fn atari_group, illegal_points ->
-    #   MapSet.union(atari_group.liberties, illegal_points)
-    # end)
-
-    %Goban{goban | illegal_moves: illegal_moves}
   end
 
   defp perform_captures(%Goban{} = goban) do
@@ -195,5 +177,54 @@ defmodule CaptureGo.Goban do
 
   defp on_the_board?(goban, {x, y}) do
     x >= 0 && x < goban.size && y >= 0 && y < goban.size
+  end
+
+  defp is_suicide?(goban, point) do
+    cond do
+      has_immediate_liberty?(goban, point) ->
+        false
+
+      would_capture?(goban, goban.turn, point) ->
+        false
+
+      only_enemy_neighbors?(goban, goban.turn, point) ->
+        true
+
+      kills_friendly?(goban, goban.turn, point) ->
+        true
+
+      true ->
+        false
+    end
+  end
+
+  # These rely on the order they are called in is_suicide?/2
+
+  defp has_immediate_liberty?(goban, point) do
+    !Enum.empty?(immediate_liberties(goban, point))
+  end
+
+  defp only_enemy_neighbors?(goban, color, point) do
+    neighboring_points(goban, point)
+    |> Enum.all?(fn point ->
+      {:ok, neighbor} = stone_at(goban, point)
+      neighbor == opposite_color(color)
+    end)
+  end
+
+  defp would_capture?(goban, color, point) do
+    enemy_atari_groups =
+      neighboring_groups(goban, opposite_color(color), point)
+      |> Enum.filter(&StoneGroup.in_atari?/1)
+
+    !Enum.empty?(enemy_atari_groups)
+  end
+
+  defp kills_friendly?(goban, color, point) do
+    friendly_atari_groups =
+      neighboring_groups(goban, color, point)
+      |> Enum.filter(&StoneGroup.in_atari?/1)
+
+    !Enum.empty?(friendly_atari_groups)
   end
 end
