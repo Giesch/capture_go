@@ -1,11 +1,11 @@
-defmodule CaptureGo.Prisoners do
+defmodule CaptureGo.Goban.Prisoners do
   @moduledoc """
   A map of captures by color.
   Color is the color of the capturer, not the capturee.
   """
 
   import CaptureGo.Color
-  alias CaptureGo.Prisoners
+  alias CaptureGo.Goban.Prisoners
 
   defstruct black: 0, white: 0
 

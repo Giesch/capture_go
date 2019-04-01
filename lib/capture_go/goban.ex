@@ -5,9 +5,9 @@ defmodule CaptureGo.Goban do
 
   import CaptureGo.Color
   alias CaptureGo.Goban
-  alias CaptureGo.StoneGroup
-  alias CaptureGo.Prisoners
-  alias CaptureGo.GroupData
+  alias CaptureGo.Goban.StoneGroup
+  alias CaptureGo.Goban.Prisoners
+  alias CaptureGo.Goban.GroupData
 
   defstruct board: Map.new(),
             size: 9,
@@ -25,6 +25,10 @@ defmodule CaptureGo.Goban do
     end
   end
 
+  def legal?(%Goban{} = goban, color, point) when is_color(color) do
+    :ok == validate_move(goban, color, point)
+  end
+
   def stone_at(%Goban{} = goban, point) do
     cond do
       !on_the_board?(goban, point) -> {:error, :off_board}
@@ -32,8 +36,8 @@ defmodule CaptureGo.Goban do
     end
   end
 
-  def legal?(%Goban{} = goban, color, point) when is_color(color) do
-    :ok == validate_move(goban, color, point)
+  def groups(%Goban{group_data: group_data}) do
+    GroupData.groups(group_data)
   end
 
   ###########################################

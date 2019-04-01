@@ -1,10 +1,10 @@
-defmodule CaptureGo.StoneGroup do
+defmodule CaptureGo.Goban.StoneGroup do
   @moduledoc """
   A data type for a connected group of stones
   """
 
   import CaptureGo.Color
-  alias CaptureGo.StoneGroup
+  alias CaptureGo.Goban.StoneGroup
 
   defstruct color: nil,
             stones: nil,

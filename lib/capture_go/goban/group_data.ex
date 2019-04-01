@@ -1,10 +1,10 @@
-defmodule CaptureGo.GroupData do
+defmodule CaptureGo.Goban.GroupData do
   @moduledoc """
   A map of {x, y} tuples to StoneGroups.
   """
 
-  alias CaptureGo.GroupData
-  alias CaptureGo.StoneGroup
+  alias CaptureGo.Goban.GroupData
+  alias CaptureGo.Goban.StoneGroup
 
   defstruct points_to_groups: Map.new()
 
