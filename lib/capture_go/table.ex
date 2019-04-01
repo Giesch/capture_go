@@ -18,7 +18,7 @@ defmodule CaptureGo.Table do
             host_token: nil,
             password: nil,
             challenger_token: nil,
-            challenger_color: nil
+            player_colors: Map.new()
 
   def new(host_token, options \\ []) do
     password = Keyword.get(options, :password)
@@ -42,12 +42,15 @@ defmodule CaptureGo.Table do
     invalid_for_state(state)
   end
 
-  defp start_game(table, token, color) do
+  defp start_game(table, challenger_token, challenger_color) do
     %Table{
       table
       | state: :game_started,
-        challenger_token: token,
-        challenger_color: color
+        challenger_token: challenger_token,
+        player_colors: %{
+          challenger_token => challenger_color,
+          table.host_token => opposite_color(challenger_color)
+        }
     }
   end
 
@@ -65,9 +68,40 @@ defmodule CaptureGo.Table do
     invalid_for_state(state)
   end
 
-  # TODO game over state
-  # functions for making moves
-  # game over checks in the make move function
+  def move(%Table{state: :game_started} = table, token, point) do
+    color = table.player_colors[token]
+
+    if color do
+      make_move(table, color, point)
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def move(%Table{state: state}, _token, _point) do
+    invalid_for_state(state)
+  end
+
+  defp make_move(table, color, point) do
+    case Goban.move(table.goban, color, point) do
+      {:ok, goban} ->
+        table = %Table{table | goban: goban} |> win_check()
+        {:ok, table}
+
+      failure ->
+        failure
+    end
+  end
+
+  defp win_check(%Table{goban: goban} = table) do
+    if goban.winner do
+      %Table{table | state: :game_over}
+    else
+      table
+    end
+  end
+
+  # TODO
   # player left
 
   defp invalid_for_state(state) do
