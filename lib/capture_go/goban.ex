@@ -2,15 +2,14 @@ defmodule CaptureGo.Goban do
   import CaptureGo.Color
   alias CaptureGo.Goban
   alias CaptureGo.StoneGroup
+  alias CaptureGo.Prisoners
 
   defstruct board: Map.new(),
             size: 9,
             turn: :black,
             winner: nil,
-            # TODO make this a prisoners map with two color keys
-            whites_prisoners: 0,
-            blacks_prisoners: 0,
-            points_to_groups: Map.new()
+            points_to_groups: Map.new(),
+            prisoners: Prisoners.new()
 
   def new() do
     %Goban{}
@@ -132,32 +131,18 @@ defmodule CaptureGo.Goban do
     %Goban{
       goban
       | points_to_groups: Map.drop(goban.points_to_groups, dead_stones),
-        board: Map.drop(goban.board, dead_stones)
+        board: Map.drop(goban.board, dead_stones),
+        prisoners: Prisoners.add(goban.prisoners, goban.turn, MapSet.size(dead_stones))
     }
-    |> add_prisoners(MapSet.size(dead_stones))
-  end
-
-  defp add_prisoners(%Goban{} = goban, amount) do
-    case goban.turn do
-      :white ->
-        %Goban{goban | whites_prisoners: goban.whites_prisoners + amount}
-
-      :black ->
-        %Goban{goban | blacks_prisoners: goban.blacks_prisoners + amount}
-    end
   end
 
   defp win_check(goban) do
-    cond do
-      goban.blacks_prisoners > 0 ->
-        %Goban{goban | winner: :black}
+    winner =
+      Enum.find([:black, :white], fn color ->
+        Map.get(goban.prisoners, color) > 0
+      end)
 
-      goban.whites_prisoners > 0 ->
-        %Goban{goban | winner: :white}
-
-      true ->
-        goban
-    end
+    %Goban{goban | winner: winner}
   end
 
   defp point_empty?(goban, point) do
@@ -198,7 +183,7 @@ defmodule CaptureGo.Goban do
     end
   end
 
-  # These rely on the order they are called in is_suicide?/2
+  # These predicates rely on the order they are called in is_suicide?/2
 
   defp has_immediate_liberty?(goban, point) do
     !Enum.empty?(immediate_liberties(goban, point))

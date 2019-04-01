@@ -52,7 +52,7 @@ defmodule CaptureGo.GobanTest do
   test "a stone in the center is captured when it has no liberties" do
     goban = white_wins()
     assert Goban.stone_at(goban, {4, 4}) == {:ok, nil}
-    assert goban.whites_prisoners == 1
+    assert goban.prisoners.white == 1
   end
 
   test "a stone on the side is captured when it has no liberties" do
@@ -67,7 +67,7 @@ defmodule CaptureGo.GobanTest do
       ])
 
     assert Goban.stone_at(goban, {4, 0}) == {:ok, nil}
-    assert goban.whites_prisoners == 1
+    assert goban.prisoners.white == 1
   end
 
   test "a stone in the corner is captured when it has no liberties" do
@@ -80,7 +80,7 @@ defmodule CaptureGo.GobanTest do
       ])
 
     assert Goban.stone_at(goban, {0, 0}) == {:ok, nil}
-    assert goban.whites_prisoners == 1
+    assert goban.prisoners.white == 1
   end
 
   test "capturing a stone wins the game" do
@@ -135,8 +135,8 @@ defmodule CaptureGo.GobanTest do
 
     assert all_stones(goban, :white) == expected_white_stones
     assert all_stones(goban, :black) == expected_black_stones
-    assert goban.whites_prisoners == 1
-    assert goban.blacks_prisoners == 0
+    assert goban.prisoners.white == 1
+    assert goban.prisoners.black == 0
   end
 
   def white_wins() do
