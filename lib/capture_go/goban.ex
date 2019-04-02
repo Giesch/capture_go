@@ -40,7 +40,9 @@ defmodule CaptureGo.Goban do
     GroupData.groups(group_data)
   end
 
-  ###########################################
+  ##################
+  # Move procedure
+  #
 
   defp validate_move(goban, color, point) do
     cond do
@@ -98,37 +100,20 @@ defmodule CaptureGo.Goban do
     %Goban{goban | turn: opposite_color(goban.turn)}
   end
 
-  defp immediate_liberties(%Goban{} = goban, point) do
-    neighboring_points(goban, point)
-    |> Enum.filter(fn point -> point_empty?(goban, point) end)
-    |> MapSet.new()
-  end
-
-  defp point_empty?(%Goban{} = goban, point) do
-    {:ok, stone} = stone_at(goban, point)
-    stone == nil
-  end
+  ####################
+  # Suicide checking
+  # The predicates rely on the order they are called in is_suicide?/2
+  #
 
   defp is_suicide?(%Goban{} = goban, point) do
     cond do
-      has_immediate_liberty?(goban, point) ->
-        false
-
-      would_capture?(goban, goban.turn, point) ->
-        false
-
-      only_enemy_neighbors?(goban, goban.turn, point) ->
-        true
-
-      kills_friendly?(goban, goban.turn, point) ->
-        true
-
-      true ->
-        false
+      has_immediate_liberty?(goban, point) -> false
+      would_capture?(goban, goban.turn, point) -> false
+      only_enemy_neighbors?(goban, goban.turn, point) -> true
+      kills_friendly?(goban, goban.turn, point) -> true
+      true -> false
     end
   end
-
-  # These predicates rely on the order they are called in is_suicide?/2
 
   defp has_immediate_liberty?(%Goban{} = goban, point) do
     !Enum.empty?(immediate_liberties(goban, point))
@@ -156,6 +141,21 @@ defmodule CaptureGo.Goban do
       |> Enum.filter(&StoneGroup.in_atari?/1)
 
     !Enum.empty?(friendly_atari_groups)
+  end
+
+  ########
+  # Misc
+  #
+
+  defp immediate_liberties(%Goban{} = goban, point) do
+    neighboring_points(goban, point)
+    |> Enum.filter(fn point -> point_empty?(goban, point) end)
+    |> MapSet.new()
+  end
+
+  defp point_empty?(%Goban{} = goban, point) do
+    {:ok, stone} = stone_at(goban, point)
+    stone == nil
   end
 
   defp neighboring_groups(%Goban{} = goban, color, point) do

@@ -1,17 +1,22 @@
 defmodule CaptureGo.Table do
+  @moduledoc """
+  A data type for the 'meta' rules of the game.
+
+  Table.state is an enum of:
+    :table_open
+    :game_started
+    :host_cancelled
+    :game_over
+  """
+
   alias CaptureGo.Table
   alias CaptureGo.Goban
   import CaptureGo.Color
 
-  # state is an enum of:
-  # :table_open
-  # :game_started
-  # :game_over
-  # :host_cancelled
-
+  # TODO handle players leaving; have the game time out due to inactivity
   # :player_left (necessary? allow rejoining?)
-
-  # TODO split out game state & authorization into submodules?
+  # timestamp for last move/last interaction
+  # to be used for cleaning up left games
 
   defstruct state: :table_open,
             goban: Goban.new(),
@@ -100,9 +105,6 @@ defmodule CaptureGo.Table do
       table
     end
   end
-
-  # TODO
-  # player left
 
   defp invalid_for_state(state) do
     {:error, {:invalid_for_state, state}}
