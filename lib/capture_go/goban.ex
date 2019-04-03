@@ -118,6 +118,12 @@ defmodule CaptureGo.Goban do
     !Enum.empty?(immediate_liberties(goban, point))
   end
 
+  defp would_capture?(%Goban{} = goban, color, point) do
+    neighboring_groups(goban, opposite_color(color), point)
+    |> Enum.filter(&StoneGroup.in_atari?/1)
+    |> non_empty?()
+  end
+
   defp only_enemy_neighbors?(%Goban{} = goban, color, point) do
     neighboring_points(goban, point)
     |> Enum.all?(fn point ->
@@ -126,21 +132,13 @@ defmodule CaptureGo.Goban do
     end)
   end
 
-  defp would_capture?(%Goban{} = goban, color, point) do
-    enemy_atari_groups =
-      neighboring_groups(goban, opposite_color(color), point)
-      |> Enum.filter(&StoneGroup.in_atari?/1)
-
-    !Enum.empty?(enemy_atari_groups)
-  end
-
   defp kills_friendly?(%Goban{} = goban, color, point) do
-    friendly_atari_groups =
-      neighboring_groups(goban, color, point)
-      |> Enum.filter(&StoneGroup.in_atari?/1)
-
-    !Enum.empty?(friendly_atari_groups)
+    neighboring_groups(goban, color, point)
+    |> Enum.filter(&StoneGroup.in_atari?/1)
+    |> non_empty?()
   end
+
+  defp non_empty?(enum), do: !Enum.empty?(enum)
 
   ########
   # Misc
