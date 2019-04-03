@@ -140,6 +140,27 @@ defmodule CaptureGo.GobanTest do
     assert goban.prisoners.black == 0
   end
 
+  test "connecting a group in atari to living group is not suicide" do
+    goban =
+      play_game([
+        {:black, {0, 0}},
+        {:white, {1, 0}},
+        {:black, {0, 2}},
+        {:white, {1, 1}},
+        {:black, {8, 8}},
+        {:white, {1, 2}},
+        {:black, {0, 1}}
+      ])
+
+    expected_white_stones = MapSet.new([{1, 0}, {1, 1}, {1, 2}])
+    expected_black_stones = MapSet.new([{0, 0}, {0, 1}, {0, 2}, {8, 8}])
+
+    assert all_stones(goban, :white) == expected_white_stones
+    assert all_stones(goban, :black) == expected_black_stones
+    assert goban.prisoners.black == 0
+    assert goban.prisoners.white == 0
+  end
+
   def white_wins() do
     play_game([
       {:black, {4, 4}},
