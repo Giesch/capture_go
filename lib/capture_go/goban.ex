@@ -6,14 +6,13 @@ defmodule CaptureGo.Goban do
   import CaptureGo.Color
   alias CaptureGo.Goban
   alias CaptureGo.Goban.StoneGroup
-  alias CaptureGo.Goban.Prisoners
   alias CaptureGo.Goban.GroupData
 
   defstruct board: Map.new(),
             size: 9,
             turn: :black,
             winner: nil,
-            prisoners: Prisoners.new(),
+            prisoners: %{black: 0, white: 0},
             group_data: GroupData.new()
 
   def new(), do: %Goban{}
@@ -75,10 +74,10 @@ defmodule CaptureGo.Goban do
     %Goban{goban | group_data: GroupData.remove_liberty(group_data, groups, point)}
   end
 
-  defp perform_captures(%Goban{} = goban) do
+  defp perform_captures(%Goban{turn: turn, prisoners: prisoners} = goban) do
     dead_stones =
       GroupData.groups(goban.group_data)
-      |> Enum.filter(fn group -> group.color != goban.turn end)
+      |> Enum.filter(fn group -> group.color != turn end)
       |> Enum.filter(&StoneGroup.dead?/1)
       |> Enum.reduce(MapSet.new(), fn dead_group, dead_stones ->
         MapSet.union(dead_group.stones, dead_stones)
@@ -88,12 +87,12 @@ defmodule CaptureGo.Goban do
       goban
       | group_data: GroupData.drop(goban.group_data, dead_stones),
         board: Map.drop(goban.board, dead_stones),
-        prisoners: Prisoners.add(goban.prisoners, goban.turn, MapSet.size(dead_stones))
+        prisoners: Map.update!(prisoners, turn, &(&1 + MapSet.size(dead_stones)))
     }
   end
 
-  defp win_check(%Goban{} = goban) do
-    %Goban{goban | winner: Prisoners.winner(goban.prisoners)}
+  defp win_check(%Goban{prisoners: prisoners} = goban) do
+    %Goban{goban | winner: Enum.find([:black, :white], &(Map.get(prisoners, &1) > 0))}
   end
 
   defp flip_turn(%Goban{} = goban) do
