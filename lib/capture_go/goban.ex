@@ -80,7 +80,7 @@ defmodule CaptureGo.Goban do
 
     dead_stones =
       GroupData.groups(goban.group_data)
-      |> Enum.filter(dead_enemy?)
+      |> Stream.filter(dead_enemy?)
       |> Enum.reduce(MapSet.new(), collect_stones)
 
     %Goban{
@@ -92,7 +92,8 @@ defmodule CaptureGo.Goban do
   end
 
   defp win_check(%Goban{prisoners: prisoners} = goban) do
-    %Goban{goban | winner: Enum.find([:black, :white], &(Map.get(prisoners, &1) > 0))}
+    has_prisoners? = fn color -> Map.get(prisoners, color) > 0 end
+    %Goban{goban | winner: Enum.find([:black, :white], has_prisoners?)}
   end
 
   defp flip_turn(%Goban{} = goban) do
@@ -154,19 +155,14 @@ defmodule CaptureGo.Goban do
   end
 
   defp neighbors_with_color(%Goban{} = goban, color, point) do
-    color? = fn point -> {:ok, color} == stone_at(goban, point) end
-    neighboring_points(goban, point) |> Enum.filter(color?)
+    our_color? = fn point -> {:ok, color} == stone_at(goban, point) end
+    neighboring_points(goban, point) |> Enum.filter(our_color?)
   end
 
-  defp neighboring_points(%Goban{} = goban, point) do
-    [up(point), down(point), left(point), right(point)]
+  defp neighboring_points(%Goban{} = goban, {x, y}) do
+    [{x, y - 1}, {x, y + 1}, {x - 1, y}, {x + 1, y}]
     |> Enum.filter(&on_the_board?(goban, &1))
   end
-
-  defp up({x, y}), do: {x, y - 1}
-  defp down({x, y}), do: {x, y + 1}
-  defp left({x, y}), do: {x - 1, y}
-  defp right({x, y}), do: {x + 1, y}
 
   defp on_the_board?(%Goban{size: size}, {x, y}) do
     x >= 0 && x < size && y >= 0 && y < size
