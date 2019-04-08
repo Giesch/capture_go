@@ -23,7 +23,8 @@ defmodule CaptureGo.Table do
             host_token: nil,
             password: nil,
             challenger_token: nil,
-            player_colors: Map.new()
+            player_colors: Map.new(),
+            last_activity: nil
 
   def new(host_token, options \\ []) do
     password = Keyword.get(options, :password)
@@ -32,11 +33,11 @@ defmodule CaptureGo.Table do
 
   def challenge(table, token, color, opts \\ [])
 
-  def challenge(%Table{state: :table_open, password: password} = table, token, color, opts)
+  def challenge(%Table{state: :table_open} = table, token, color, opts)
       when is_color(color) do
     provided_pass = Keyword.get(opts, :password)
 
-    if password && provided_pass != password do
+    if table.password && provided_pass != table.password do
       {:error, :unauthorized}
     else
       {:ok, start_game(table, token, color)}
@@ -104,6 +105,10 @@ defmodule CaptureGo.Table do
     else
       table
     end
+  end
+
+  def update_activity(%Table{} = table, time) do
+    %Table{table | last_activity: time}
   end
 
   defp invalid_for_state(state) do
