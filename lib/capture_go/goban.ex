@@ -125,7 +125,10 @@ defmodule CaptureGo.Goban do
   end
 
   defp only_enemy_neighbors?(%Goban{} = goban, color, point) do
-    is_enemy? = &(stone_at(goban, &1) == {:ok, opposite_color(color)})
+    is_enemy? = fn point ->
+      stone_at(goban, point) == {:ok, opposite_color(color)}
+    end
+
     neighboring_points(goban, point) |> Enum.all?(is_enemy?)
   end
 
