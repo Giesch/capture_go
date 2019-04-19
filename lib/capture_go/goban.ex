@@ -20,7 +20,7 @@ defmodule CaptureGo.Goban do
   def move(%Goban{} = goban, color, point) when is_color(color) do
     case validate_move(goban, color, point) do
       :ok -> {:ok, place_stone(goban, color, point)}
-      error -> error
+      {:error, _reason} = failure -> failure
     end
   end
 

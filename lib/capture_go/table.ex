@@ -94,7 +94,7 @@ defmodule CaptureGo.Table do
         table = %Table{table | goban: goban} |> win_check()
         {:ok, table}
 
-      failure ->
+      {:error, _reason} = failure ->
         failure
     end
   end

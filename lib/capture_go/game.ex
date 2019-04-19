@@ -60,7 +60,7 @@ defmodule CaptureGo.Game do
   defp pass_through_reply(result, current_table) do
     case result do
       {:ok, table} -> {:reply, {:ok, TableView.new(table)}, table}
-      error -> {:reply, error, current_table}
+      {:error, _reason} = failure -> {:reply, failure, current_table}
     end
   end
 end
