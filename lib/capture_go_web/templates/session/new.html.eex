@@ -1,0 +1,18 @@
+<div class="columns is-centered">
+  <div class="column has-text-centered">
+    <h1>Login</h1>
+
+    <%= form_for @conn, Routes.session_path(@conn, :create), [as: :session], fn f -> %>
+      <label class="label">
+        <%= text_input f, :email, placeholder: "Email" %>
+      </label>
+
+      <label class="label">
+        <%= password_input f, :password, placeholder: "Password" %>
+      </label>
+
+      <%= submit "Log in", class: "button" %>
+    <% end %>
+  </div>
+</div>
+
