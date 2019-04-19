@@ -14,21 +14,22 @@ defmodule CaptureGo.Table do
   import CaptureGo.Color
 
   # TODO handle players leaving; have the game time out due to inactivity
-  # :player_left (necessary? allow rejoining?)
+  #   :player_left (necessary? allow rejoining?)
   # timestamp for last move/last interaction
-  # to be used for cleaning up left games
+  #   to be used for cleaning up left games
 
   defstruct state: :table_open,
             goban: Goban.new(),
+            game_id: nil,
             host_token: nil,
             password: nil,
             challenger_token: nil,
             player_colors: Map.new(),
             last_activity: nil
 
-  def new(host_token, options \\ []) do
+  def new(game_id, host_token, options \\ []) do
     password = Keyword.get(options, :password)
-    %Table{host_token: host_token, password: password}
+    %Table{game_id: game_id, host_token: host_token, password: password}
   end
 
   def challenge(table, token, color, opts \\ [])
@@ -36,16 +37,19 @@ defmodule CaptureGo.Table do
   def challenge(%Table{state: :table_open} = table, token, color, opts)
       when is_color(color) do
     provided_pass = Keyword.get(opts, :password)
-
-    if table.password && provided_pass != table.password do
-      {:error, :unauthorized}
-    else
-      {:ok, start_game(table, token, color)}
-    end
+    check_password_and_start(table, provided_pass, token, color)
   end
 
   def challenge(%Table{state: state}, _token, _color, _opts) do
     invalid_for_state(state)
+  end
+
+  defp check_password_and_start(%Table{} = table, password, token, color) do
+    if table.password && password != table.password do
+      {:error, :unauthorized}
+    else
+      {:ok, start_game(table, token, color)}
+    end
   end
 
   defp start_game(table, challenger_token, challenger_color) do

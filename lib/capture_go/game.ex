@@ -8,37 +8,42 @@ defmodule CaptureGo.Game do
   import CaptureGo.Color
   alias CaptureGo.Table
   alias CaptureGo.TableView
+  alias CaptureGo.GameRegistry
 
   # TODO
-  # add timeouts
-  # replace :ok reply with something useful
-  #   maybe just the board?
-  #   or a new struct that copies public stuff from board
-  # decide where to generate/handle the tokens
-  #   also need to tell client their token
+  # add channel broadcasts;
+  #   need another module that handles channel names
 
   def start_link(host_token, options \\ []) do
-    GenServer.start_link(__MODULE__, {host_token, options})
+    game_id = Keyword.get(options, :game_id, UUID.uuid4())
+
+    init_arg = %{
+      game_id: game_id,
+      host_token: host_token,
+      options: options
+    }
+
+    GenServer.start_link(__MODULE__, init_arg, name: via_tuple(game_id))
   end
 
-  def challenge(game_server, token, color, options \\ [])
+  def challenge(game_id, token, color, options \\ [])
       when is_color(color) do
-    GenServer.call(game_server, {:challenge, token, color, options})
+    GenServer.call(via_tuple(game_id), {:challenge, token, color, options})
   end
 
-  def host_cancel(game_server, token) do
-    GenServer.call(game_server, {:host_cancel, token})
+  def host_cancel(game_id, token) do
+    GenServer.call(via_tuple(game_id), {:host_cancel, token})
   end
 
-  def move(game_server, token, point) do
-    GenServer.call(game_server, {:move, token, point})
+  def move(game_id, token, point) do
+    GenServer.call(via_tuple(game_id), {:move, token, point})
   end
 
   ########################################
 
   @impl GenServer
-  def init({host_token, options}) do
-    {:ok, Table.new(host_token, options)}
+  def init(%{game_id: game_id, host_token: host_token, options: options}) do
+    {:ok, Table.new(game_id, host_token, options)}
   end
 
   @impl GenServer
@@ -62,5 +67,9 @@ defmodule CaptureGo.Game do
       {:ok, table} -> {:reply, {:ok, TableView.new(table)}, table}
       {:error, _reason} = failure -> {:reply, failure, current_table}
     end
+  end
+
+  defp via_tuple(game_id) do
+    GameRegistry.via_tuple({__MODULE__, game_id})
   end
 end
