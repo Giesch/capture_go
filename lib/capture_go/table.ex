@@ -13,11 +13,6 @@ defmodule CaptureGo.Table do
   alias CaptureGo.Goban
   import CaptureGo.Color
 
-  # TODO handle players leaving; have the game time out due to inactivity
-  #   :player_left (necessary? allow rejoining?)
-  # timestamp for last move/last interaction
-  #   to be used for cleaning up left games
-
   defstruct state: :table_open,
             goban: Goban.new(),
             game_id: nil,
@@ -27,8 +22,7 @@ defmodule CaptureGo.Table do
             player_colors: Map.new(),
             last_activity: nil
 
-  def new(game_id, host_token, options \\ []) do
-    password = Keyword.get(options, :password)
+  def new(game_id, host_token, password \\ nil) do
     %Table{game_id: game_id, host_token: host_token, password: password}
   end
 

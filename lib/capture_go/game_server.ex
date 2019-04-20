@@ -1,4 +1,4 @@
-defmodule CaptureGo.Game do
+defmodule CaptureGo.GameServer do
   @moduledoc """
   The stateful server wrapper for CaptureGo.Table
   """
@@ -13,37 +13,46 @@ defmodule CaptureGo.Game do
   # TODO
   # add channel broadcasts;
   #   need another module that handles channel names
+  # handle players leaving; have the game time out due to inactivity
+  #   use update_activity when doing other tasks (make part of data model?)
+  #   background job to clean out inactive games
+  #   add inactive?(now) predicate to model
 
-  def start_link(host_token, options \\ []) do
-    game_id = Keyword.get(options, :game_id, UUID.uuid4())
+  def start_link(options \\ []) do
+    game_id = Keyword.get(options, :game_id)
 
     init_arg = %{
       game_id: game_id,
-      host_token: host_token,
-      options: options
+      host_token: Keyword.get(options, :host_token),
+      password: Keyword.get(options, :password)
     }
 
     GenServer.start_link(__MODULE__, init_arg, name: via_tuple(game_id))
   end
 
-  def challenge(game_id, token, color, options \\ [])
+  def challenge(game_server, token, color, options \\ [])
       when is_color(color) do
-    GenServer.call(via_tuple(game_id), {:challenge, token, color, options})
+    GenServer.call(game_server, {:challenge, token, color, options})
   end
 
-  def host_cancel(game_id, token) do
-    GenServer.call(via_tuple(game_id), {:host_cancel, token})
+  def host_cancel(game_server, token) do
+    GenServer.call(game_server, {:host_cancel, token})
   end
 
-  def move(game_id, token, point) do
-    GenServer.call(via_tuple(game_id), {:move, token, point})
+  def move(game_server, token, point) do
+    GenServer.call(game_server, {:move, token, point})
+  end
+
+  def via_tuple(game_id) do
+    GameRegistry.via_tuple({__MODULE__, game_id})
   end
 
   ########################################
 
   @impl GenServer
-  def init(%{game_id: game_id, host_token: host_token, options: options}) do
-    {:ok, Table.new(game_id, host_token, options)}
+  def init(%{game_id: game_id, host_token: host_token, password: password})
+      when is_binary(game_id) and is_binary(host_token) do
+    {:ok, Table.new(game_id, host_token, password)}
   end
 
   @impl GenServer
@@ -67,9 +76,5 @@ defmodule CaptureGo.Game do
       {:ok, table} -> {:reply, {:ok, TableView.new(table)}, table}
       {:error, _reason} = failure -> {:reply, failure, current_table}
     end
-  end
-
-  defp via_tuple(game_id) do
-    GameRegistry.via_tuple({__MODULE__, game_id})
   end
 end

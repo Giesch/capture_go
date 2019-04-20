@@ -14,7 +14,7 @@ defmodule CaptureGo.TableTest do
   end
 
   test "a game can be created with a password" do
-    table = Table.new(@game_id, @host_token, password: @password)
+    table = Table.new(@game_id, @host_token, @password)
     assert table.password == @password
   end
 
@@ -35,7 +35,7 @@ defmodule CaptureGo.TableTest do
   end
 
   test "if the game has a password, it is required for a challenge" do
-    table = Table.new(@game_id, @host_token, password: @password)
+    table = Table.new(@game_id, @host_token, @password)
     assert {:error, :unauthorized} = Table.challenge(table, @challenger_token, :black)
   end
 
