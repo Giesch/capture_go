@@ -8,11 +8,16 @@ defmodule CaptureGo.GameSupervisor do
     )
   end
 
-  def start_game(game_id, host_token, password \\ nil) do
-    options = [game_id: game_id, host_token: host_token, password: password]
+  def start_game(%{game_id: game_id, token: host_token} = request) do
+    options = [
+      game_id: game_id,
+      token: host_token,
+      password: request[:password]
+    ]
 
     case start_child(options) do
       {:ok, pid} -> pid
+      # TODO this doesn't verify that the host and password are the same
       {:error, {:already_started, pid}} -> pid
     end
   end

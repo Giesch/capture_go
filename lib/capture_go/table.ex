@@ -26,15 +26,14 @@ defmodule CaptureGo.Table do
     %Table{game_id: game_id, host_token: host_token, password: password}
   end
 
-  def challenge(table, token, color, opts \\ [])
+  def challenge(table, token, color, password \\ nil)
 
-  def challenge(%Table{state: :table_open} = table, token, color, opts)
-      when is_color(color) do
-    provided_pass = Keyword.get(opts, :password)
-    check_password_and_start(table, provided_pass, token, color)
+  def challenge(%Table{state: :table_open} = table, token, color, password)
+      when is_color(color) and is_binary(token) do
+    check_password_and_start(table, password, token, color)
   end
 
-  def challenge(%Table{state: state}, _token, _color, _opts) do
+  def challenge(%Table{state: state}, _token, _color, _password) do
     invalid_for_state(state)
   end
 

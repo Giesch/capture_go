@@ -39,6 +39,11 @@ defmodule CaptureGo.TableTest do
     assert {:error, :unauthorized} = Table.challenge(table, @challenger_token, :black)
   end
 
+  test "if the game has a password, it can be challenged with the password" do
+    table = Table.new(@game_id, @host_token, @password)
+    assert {:ok, table} = Table.challenge(table, @challenger_token, :black, @password)
+  end
+
   test "the host can cancel a their game before it starts" do
     table = Table.new(@game_id, @host_token)
     assert table.state == :table_open

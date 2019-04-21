@@ -23,16 +23,16 @@ defmodule CaptureGo.GameServer do
 
     init_arg = %{
       game_id: game_id,
-      host_token: Keyword.get(options, :host_token),
+      token: Keyword.get(options, :token),
       password: Keyword.get(options, :password)
     }
 
     GenServer.start_link(__MODULE__, init_arg, name: via_tuple(game_id))
   end
 
-  def challenge(game_server, token, color, options \\ [])
+  def challenge(game_server, %{token: token, color: color} = request)
       when is_color(color) do
-    GenServer.call(game_server, {:challenge, token, color, options})
+    GenServer.call(game_server, {:challenge, token, color, request[:password]})
   end
 
   def host_cancel(game_server, token) do
@@ -50,14 +50,14 @@ defmodule CaptureGo.GameServer do
   ########################################
 
   @impl GenServer
-  def init(%{game_id: game_id, host_token: host_token, password: password})
-      when is_binary(game_id) and is_binary(host_token) do
-    {:ok, Table.new(game_id, host_token, password)}
+  def init(%{game_id: game_id, token: token, password: password})
+      when is_binary(game_id) and is_binary(token) do
+    {:ok, Table.new(game_id, token, password)}
   end
 
   @impl GenServer
-  def handle_call({:challenge, token, color, options}, _from, table_state) do
-    Table.challenge(table_state, token, color, options)
+  def handle_call({:challenge, token, color, password}, _from, table_state) do
+    Table.challenge(table_state, token, color, password)
     |> pass_through_reply(table_state)
   end
 
