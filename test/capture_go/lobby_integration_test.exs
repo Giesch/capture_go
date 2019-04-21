@@ -92,4 +92,21 @@ defmodule CaptureGo.LobbyIntegrationTest do
     assert {:ok, _game} = LobbyServer.open_game(@game_id, @host)
     assert {:error, _reason} = LobbyServer.end_game(@game_id)
   end
+
+  test "winning a game removes it from the lobby server's active games" do
+    assert {:ok, _game_server} = LobbyServer.open_game(@game_id, @host)
+    assert {:ok, table_view} = LobbyServer.begin_game(@game_id, @challenger)
+    assert %TableView{goban: Goban.new(), state: :game_started} == table_view
+    assert {:ok, active_games} = LobbyServer.active_games()
+    assert MapSet.member?(active_games, @game_id)
+
+    game = GameServer.via_tuple(@game_id)
+    assert {:ok, table_view} = GameServer.move(game, @challenger, {0, 0})
+    assert {:ok, table_view} = GameServer.move(game, @host, {1, 0})
+    assert {:ok, table_view} = GameServer.move(game, @challenger, {8, 8})
+    assert {:ok, table_view} = GameServer.move(game, @host, {0, 1})
+
+    assert %TableView{state: :game_over} = table_view
+    assert {:ok, MapSet.new()} == LobbyServer.active_games()
+  end
 end

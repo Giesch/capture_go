@@ -9,6 +9,7 @@ defmodule CaptureGo.GameServer do
   alias CaptureGo.Table
   alias CaptureGo.TableView
   alias CaptureGo.GameRegistry
+  alias CaptureGo.LobbyServer
 
   # TODO
   # add channel broadcasts;
@@ -68,7 +69,17 @@ defmodule CaptureGo.GameServer do
 
   def handle_call({:move, token, point}, _from, table_state) do
     Table.move(table_state, token, point)
+    |> game_over_check()
     |> pass_through_reply(table_state)
+  end
+
+  defp game_over_check({:ok, %Table{state: :game_over} = table} = result) do
+    LobbyServer.end_game(table.game_id)
+    result
+  end
+
+  defp game_over_check(result) do
+    result
   end
 
   defp pass_through_reply(result, current_table) do

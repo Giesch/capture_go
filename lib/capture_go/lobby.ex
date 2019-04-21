@@ -47,7 +47,7 @@ defmodule CaptureGo.Lobby do
     if MapSet.member?(open_games, game_id) do
       {:ok, %Lobby{lobby | open_games: MapSet.delete(open_games, game_id)}}
     else
-      {:error, :game_unopen}
+      {:error, :game_closed}
     end
   end
 

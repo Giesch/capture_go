@@ -62,7 +62,7 @@ defmodule CaptureGo.LobbyTest do
     lobby = Lobby.new()
     assert {:ok, lobby} = Lobby.open_game(lobby, @game_id)
     assert {:ok, lobby} = Lobby.begin_game(lobby, @game_id)
-    assert {:error, :game_unopen} = Lobby.cancel_game(lobby, @game_id)
+    assert {:error, :game_closed} = Lobby.cancel_game(lobby, @game_id)
   end
 
   test "ending an active game removes it from active games" do
