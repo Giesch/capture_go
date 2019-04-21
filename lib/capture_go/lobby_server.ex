@@ -39,6 +39,10 @@ defmodule CaptureGo.LobbyServer do
     GenServer.call(__MODULE__, {:host_cancel, request})
   end
 
+  def end_game(game_id) do
+    GenServer.call(__MODULE__, {:end_game, game_id})
+  end
+
   defp game_state_request(game_id, player_token, password \\ nil) do
     %{game_id: game_id, token: player_token, password: password}
   end
@@ -84,9 +88,16 @@ defmodule CaptureGo.LobbyServer do
     game = GameServer.via_tuple(request.game_id)
 
     with {:ok, _table_view} <- GameServer.host_cancel(game, request.token),
-         {:ok, new_lobby} <- Lobby.close_game(lobby, request.game_id) do
+         {:ok, new_lobby} <- Lobby.cancel_game(lobby, request.game_id) do
       {:reply, :ok, new_lobby}
     else
+      {:error, _reason} = failure -> {:reply, failure, lobby}
+    end
+  end
+
+  def handle_call({:end_game, game_id}, _from, %Lobby{} = lobby) do
+    case Lobby.end_game(lobby, game_id) do
+      {:ok, new_lobby} -> {:reply, :ok, new_lobby}
       {:error, _reason} = failure -> {:reply, failure, lobby}
     end
   end

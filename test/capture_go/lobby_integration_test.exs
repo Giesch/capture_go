@@ -52,7 +52,7 @@ defmodule CaptureGo.LobbyIntegrationTest do
   end
 
   test "the host can cancel an open game" do
-    assert {:ok, _game} = LobbyServer.open_game(@game_id, @host, @password)
+    assert {:ok, _game} = LobbyServer.open_game(@game_id, @host)
     assert :ok == LobbyServer.host_cancel(@game_id, @host)
 
     assert {:ok, open_games} = LobbyServer.open_games()
@@ -62,10 +62,34 @@ defmodule CaptureGo.LobbyIntegrationTest do
   end
 
   test "a non-host cannot cancel an open game" do
-    assert {:ok, _game} = LobbyServer.open_game(@game_id, @host, @password)
+    assert {:ok, _game} = LobbyServer.open_game(@game_id, @host)
     assert {:error, :unauthorized} == LobbyServer.host_cancel(@game_id, @challenger)
 
     assert {:ok, open_games} = LobbyServer.open_games()
     assert MapSet.member?(open_games, @game_id)
+  end
+
+  # TODO: how to mock an inconsistent state between game and lobby?
+  # ie challenge succeeds, but game is not active in the lobby
+  test "a started game cannot be host-cancelled" do
+    assert {:ok, _game} = LobbyServer.open_game(@game_id, @host)
+    assert {:ok, _table_view} = LobbyServer.begin_game(@game_id, @challenger)
+    assert {:error, _reason} = LobbyServer.host_cancel(@game_id, @host)
+  end
+
+  test "an active game can be ended" do
+    assert {:ok, _game} = LobbyServer.open_game(@game_id, @host)
+    assert {:ok, _table_view} = LobbyServer.begin_game(@game_id, @challenger)
+    assert :ok == LobbyServer.end_game(@game_id)
+
+    assert {:ok, active_games} = LobbyServer.active_games()
+    refute MapSet.member?(active_games, @game_id)
+    assert {:ok, open_games} = LobbyServer.open_games()
+    refute MapSet.member?(open_games, @game_id)
+  end
+
+  test "an unstarted game cannot be ended" do
+    assert {:ok, _game} = LobbyServer.open_game(@game_id, @host)
+    assert {:error, _reason} = LobbyServer.end_game(@game_id)
   end
 end

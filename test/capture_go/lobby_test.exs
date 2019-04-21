@@ -50,20 +50,32 @@ defmodule CaptureGo.LobbyTest do
     assert {:error, :game_active} == Lobby.begin_game(lobby, @game_id)
   end
 
-  test "closing a game removes it from open games" do
+  test "cancelling an open game removes it from open games" do
     lobby = Lobby.new()
     assert {:ok, lobby} = Lobby.open_game(lobby, @game_id)
-    assert {:ok, lobby} = Lobby.close_game(lobby, @game_id)
+    assert {:ok, lobby} = Lobby.cancel_game(lobby, @game_id)
     refute Enum.member?(lobby.open_games, @game_id)
     refute Enum.member?(lobby.active_games, @game_id)
   end
 
-  test "closing a game removes it from active games" do
+  test "a game that has begun cannot be cancelled" do
     lobby = Lobby.new()
     assert {:ok, lobby} = Lobby.open_game(lobby, @game_id)
     assert {:ok, lobby} = Lobby.begin_game(lobby, @game_id)
-    assert {:ok, lobby} = Lobby.close_game(lobby, @game_id)
+    assert {:error, :game_unopen} = Lobby.cancel_game(lobby, @game_id)
+  end
+
+  test "ending an active game removes it from active games" do
+    lobby = Lobby.new()
+    assert {:ok, lobby} = Lobby.open_game(lobby, @game_id)
+    assert {:ok, lobby} = Lobby.begin_game(lobby, @game_id)
+    assert {:ok, lobby} = Lobby.end_game(lobby, @game_id)
     refute Enum.member?(lobby.open_games, @game_id)
     refute Enum.member?(lobby.active_games, @game_id)
+  end
+
+  test "an inactive game cannot be ended" do
+    lobby = Lobby.new()
+    assert {:error, :game_inactive} == Lobby.end_game(lobby, @game_id)
   end
 end

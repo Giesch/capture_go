@@ -43,10 +43,19 @@ defmodule CaptureGo.Lobby do
     {:ok, lobby}
   end
 
-  def close_game(%Lobby{} = lobby, game_id) do
-    open = MapSet.delete(lobby.open_games, game_id)
-    active = MapSet.delete(lobby.active_games, game_id)
-    lobby = %Lobby{lobby | open_games: open, active_games: active}
-    {:ok, lobby}
+  def cancel_game(%Lobby{open_games: open_games} = lobby, game_id) do
+    if MapSet.member?(open_games, game_id) do
+      {:ok, %Lobby{lobby | open_games: MapSet.delete(open_games, game_id)}}
+    else
+      {:error, :game_unopen}
+    end
+  end
+
+  def end_game(%Lobby{active_games: active_games} = lobby, game_id) do
+    if MapSet.member?(active_games, game_id) do
+      {:ok, %Lobby{lobby | active_games: MapSet.delete(active_games, game_id)}}
+    else
+      {:error, :game_inactive}
+    end
   end
 end
