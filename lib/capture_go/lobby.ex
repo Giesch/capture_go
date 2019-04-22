@@ -3,7 +3,7 @@ defmodule CaptureGo.Lobby do
   A map of game states to game ids.
   """
 
-  alias CaptureGo.Lobby
+  alias __MODULE__
 
   defstruct open_games: MapSet.new(),
             active_games: MapSet.new()

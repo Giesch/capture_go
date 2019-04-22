@@ -4,9 +4,9 @@ defmodule CaptureGo.LobbyServer do
   alias CaptureGo.Lobby
   alias CaptureGo.GameSupervisor
   alias CaptureGo.GameServer
+  alias CaptureGo.LobbyEvents
 
   # TODO
-  # publish game state changes to a lobby channel
   # clean lobby - background job
   #   remove inactive tables (as defined by model)
   #   remove invalid/dead game pids
@@ -16,6 +16,9 @@ defmodule CaptureGo.LobbyServer do
     GenServer.start_link(__MODULE__, Lobby.new(), name: __MODULE__)
   end
 
+  # TODO do these do anything useful?
+  # integration tests should use broadcasted message,
+  # unit tests should use the actual state
   def open_games() do
     GenServer.call(__MODULE__, :open_games)
   end
@@ -68,8 +71,9 @@ defmodule CaptureGo.LobbyServer do
   def handle_call({:open_game, request}, _from, %Lobby{} = lobby) do
     # TODO what errors can this call have?
     game_server = GameSupervisor.start_game(request)
-    {:ok, lobby} = Lobby.open_game(lobby, request.game_id)
-    {:reply, {:ok, game_server}, lobby}
+    {:ok, new_lobby} = Lobby.open_game(lobby, request.game_id)
+    LobbyEvents.broadcast_state(new_lobby)
+    {:reply, {:ok, game_server}, new_lobby}
   end
 
   def handle_call({:begin_game, request}, _from, %Lobby{} = lobby) do
@@ -78,6 +82,7 @@ defmodule CaptureGo.LobbyServer do
 
     with {:ok, _table_view} = success <- GameServer.challenge(game, challenge),
          {:ok, new_lobby} <- Lobby.begin_game(lobby, request.game_id) do
+      LobbyEvents.broadcast_state(new_lobby)
       {:reply, success, new_lobby}
     else
       {:error, _reason} = failure -> {:reply, failure, lobby}
@@ -89,6 +94,7 @@ defmodule CaptureGo.LobbyServer do
 
     with {:ok, _table_view} <- GameServer.host_cancel(game, request.token),
          {:ok, new_lobby} <- Lobby.cancel_game(lobby, request.game_id) do
+      LobbyEvents.broadcast_state(new_lobby)
       {:reply, :ok, new_lobby}
     else
       {:error, _reason} = failure -> {:reply, failure, lobby}
@@ -97,8 +103,12 @@ defmodule CaptureGo.LobbyServer do
 
   def handle_call({:end_game, game_id}, _from, %Lobby{} = lobby) do
     case Lobby.end_game(lobby, game_id) do
-      {:ok, new_lobby} -> {:reply, :ok, new_lobby}
-      {:error, _reason} = failure -> {:reply, failure, lobby}
+      {:ok, new_lobby} ->
+        LobbyEvents.broadcast_state(new_lobby)
+        {:reply, :ok, new_lobby}
+
+      {:error, _reason} = failure ->
+        {:reply, failure, lobby}
     end
   end
 end

@@ -9,6 +9,8 @@ defmodule CaptureGo.Table do
     :game_over
   """
 
+  # TODO allow resignation
+
   alias CaptureGo.Table
   alias CaptureGo.Goban
   import CaptureGo.Color
