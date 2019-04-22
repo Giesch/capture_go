@@ -17,15 +17,8 @@ defmodule CaptureGo.LobbyServer do
     GenServer.start_link(__MODULE__, Lobby.new(), name: __MODULE__)
   end
 
-  # TODO do these do anything useful?
-  # integration tests should use broadcasted message,
-  # unit tests should use the actual state
-  def open_games() do
-    GenServer.call(__MODULE__, :open_games)
-  end
-
-  def active_games() do
-    GenServer.call(__MODULE__, :active_games)
+  def lobby() do
+    GenServer.call(__MODULE__, :lobby)
   end
 
   def open_game(%LobbyGame{} = game, host_token, password \\ nil) do
@@ -61,14 +54,8 @@ defmodule CaptureGo.LobbyServer do
   end
 
   @impl GenServer
-  def handle_call(:open_games, _from, %Lobby{} = lobby) do
-    reply = {:ok, lobby.open_games}
-    {:reply, reply, lobby}
-  end
-
-  def handle_call(:active_games, _from, %Lobby{} = lobby) do
-    reply = {:ok, lobby.active_games}
-    {:reply, reply, lobby}
+  def handle_call(:lobby, _from, %Lobby{} = lobby) do
+    {:reply, {:ok, lobby}, lobby}
   end
 
   def handle_call({:open_game, {request, %LobbyGame{} = game}}, _from, %Lobby{} = lobby) do
