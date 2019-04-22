@@ -5,6 +5,7 @@ defmodule CaptureGo.LobbyServer do
   alias CaptureGo.GameSupervisor
   alias CaptureGo.GameServer
   alias CaptureGo.LobbyEvents
+  alias CaptureGo.LobbyGame
 
   # TODO
   # clean lobby - background job
@@ -27,9 +28,9 @@ defmodule CaptureGo.LobbyServer do
     GenServer.call(__MODULE__, :active_games)
   end
 
-  def open_game(game_id, host_token, password \\ nil) do
-    request = game_state_request(game_id, host_token, password)
-    GenServer.call(__MODULE__, {:open_game, request})
+  def open_game(%LobbyGame{} = game, host_token, password \\ nil) do
+    request = game_state_request(game.id, host_token, password)
+    GenServer.call(__MODULE__, {:open_game, {request, game}})
   end
 
   def begin_game(game_id, challenger_token, password \\ nil) do
@@ -46,6 +47,8 @@ defmodule CaptureGo.LobbyServer do
     GenServer.call(__MODULE__, {:end_game, game_id})
   end
 
+  # TODO something better than this; a submodule struct or whatever
+  # also, if open game is just different then make it just different
   defp game_state_request(game_id, player_token, password \\ nil) do
     %{game_id: game_id, token: player_token, password: password}
   end
@@ -68,10 +71,10 @@ defmodule CaptureGo.LobbyServer do
     {:reply, reply, lobby}
   end
 
-  def handle_call({:open_game, request}, _from, %Lobby{} = lobby) do
+  def handle_call({:open_game, {request, %LobbyGame{} = game}}, _from, %Lobby{} = lobby) do
     # TODO what errors can this call have?
     game_server = GameSupervisor.start_game(request)
-    {:ok, new_lobby} = Lobby.open_game(lobby, request.game_id)
+    {:ok, new_lobby} = Lobby.open_game(lobby, game)
     LobbyEvents.broadcast_state(new_lobby)
     {:reply, {:ok, game_server}, new_lobby}
   end
@@ -80,6 +83,7 @@ defmodule CaptureGo.LobbyServer do
     game = GameServer.via_tuple(request.game_id)
     challenge = Map.put(request, :color, :black)
 
+    # TODO what if the game doesn't exist
     with {:ok, _table_view} = success <- GameServer.challenge(game, challenge),
          {:ok, new_lobby} <- Lobby.begin_game(lobby, request.game_id) do
       LobbyEvents.broadcast_state(new_lobby)
