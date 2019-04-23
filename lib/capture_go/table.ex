@@ -31,7 +31,7 @@ defmodule CaptureGo.Table do
   def challenge(table, token, color, password \\ nil)
 
   def challenge(%Table{state: :table_open} = table, token, color, password)
-      when is_color(color) and is_binary(token) do
+      when is_color(color) do
     check_password_and_start(table, password, token, color)
   end
 

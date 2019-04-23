@@ -51,8 +51,7 @@ defmodule CaptureGo.GameServer do
   ########################################
 
   @impl GenServer
-  def init(%{game_id: game_id, token: token, password: password})
-      when is_binary(game_id) and is_binary(token) do
+  def init(%{game_id: game_id, token: token, password: password}) do
     {:ok, Table.new(game_id, token, password)}
   end
 
