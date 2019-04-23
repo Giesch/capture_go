@@ -1,6 +1,7 @@
 defmodule CaptureGoWeb.SessionController do
   use CaptureGoWeb, :controller
 
+  import CaptureGoWeb.LiveRedirect, only: [lobby_redirect: 1]
   alias CaptureGoWeb.Auth
 
   def new(conn, _params) do
@@ -12,7 +13,7 @@ defmodule CaptureGoWeb.SessionController do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")
-        |> redirect(to: Routes.page_path(conn, :index))
+        |> lobby_redirect()
 
       {:error, conn} ->
         conn
@@ -24,6 +25,6 @@ defmodule CaptureGoWeb.SessionController do
   def delete(conn, _params) do
     conn
     |> Auth.logout()
-    |> redirect(to: Routes.page_path(conn, :index))
+    |> lobby_redirect()
   end
 end

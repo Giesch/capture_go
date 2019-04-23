@@ -1,8 +1,8 @@
 defmodule CaptureGoWeb.Auth do
   import Plug.Conn
-  import Phoenix.Controller, only: [put_flash: 3, redirect: 2]
+  import Phoenix.Controller, only: [put_flash: 3]
+  import CaptureGoWeb.LiveRedirect, only: [lobby_redirect: 1]
   alias CaptureGo.Accounts
-  alias CaptureGoWeb.Router.Helpers, as: Routes
 
   def init(opts) do
     opts
@@ -47,7 +47,7 @@ defmodule CaptureGoWeb.Auth do
     else
       conn
       |> put_flash(:error, "You must be logged in to access that page")
-      |> redirect(to: Routes.page_path(conn, :index))
+      |> lobby_redirect()
       |> halt()
     end
   end

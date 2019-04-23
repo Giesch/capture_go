@@ -18,7 +18,8 @@ defmodule CaptureGoWeb.Router do
   scope "/", CaptureGoWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live "/", LiveLobby, as: "lobby", session: [:current_user]
+
     resources "/users", UserController, only: [:new, :create]
     resources "/sessions", SessionController, only: [:new, :create, :delete]
   end

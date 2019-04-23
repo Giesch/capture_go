@@ -4,6 +4,7 @@ defmodule CaptureGoWeb.UserController do
   alias CaptureGo.Accounts
   alias CaptureGo.Accounts.User
   alias CaptureGoWeb.Auth
+  import CaptureGoWeb.LiveRedirect, only: [lobby_redirect: 1]
 
   def new(conn, _params) do
     changeset = Accounts.change_registration(%User{}, %{})
@@ -16,7 +17,7 @@ defmodule CaptureGoWeb.UserController do
         conn
         |> Auth.login(user)
         |> put_flash(:info, "#{user.username} created!")
-        |> redirect(to: Routes.page_path(conn, :index))
+        |> lobby_redirect()
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)
