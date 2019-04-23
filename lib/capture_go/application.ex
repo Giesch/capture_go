@@ -11,7 +11,8 @@ defmodule CaptureGo.Application do
       # Start the Ecto repository
       CaptureGo.Repo,
       # Start the endpoint when the application starts
-      CaptureGoWeb.Endpoint
+      CaptureGoWeb.Endpoint,
+      CaptureGo.System
       # Starts a worker by calling: CaptureGo.Worker.start_link(arg)
       # {CaptureGo.Worker, arg},
     ]

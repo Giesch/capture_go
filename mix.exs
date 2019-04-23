@@ -44,7 +44,8 @@ defmodule CaptureGo.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:argon2_elixir, "~> 2.0"},
-      {:uuid, "~> 1.1.8"}
+      {:uuid, "~> 1.1.8"},
+      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view"}
     ]
   end
 

@@ -52,7 +52,8 @@ config :capture_go, CaptureGoWeb.Endpoint,
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
       ~r{lib/capture_go_web/views/.*(ex)$},
-      ~r{lib/capture_go_web/templates/.*(eex)$}
+      ~r{lib/capture_go_web/templates/.*(eex)$},
+      ~r{lib/capture_go_web/live/.*(ex)$}
     ]
   ]
 

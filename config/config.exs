@@ -15,7 +15,10 @@ config :capture_go, CaptureGoWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "JCj5KrgH3tmbA8ZcZpvJen4/BTs2/edwnmXQ090/nEEUTge4mBXI0SV1paMI5VdC",
   render_errors: [view: CaptureGoWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: CaptureGo.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: CaptureGo.PubSub, adapter: Phoenix.PubSub.PG2],
+  live_view: [
+    signing_salt: "Ta3qbUmORgkm/OgvRT3ocLhigOWBY5b2pL++KUmFKmorKjM/NiX+8Ci15EfGc8pn"
+  ]
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -24,6 +27,8 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+config :phoenix, template_engines: [leex: Phoenix.LiveView.Engine]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

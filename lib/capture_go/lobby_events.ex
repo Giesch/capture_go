@@ -10,9 +10,9 @@ defmodule CaptureGo.LobbyEvents do
   # match on the topic, event, payload in their handle_info
   # is it still nice for convenience?
 
-  # def subscribe(pid, opts) do
-  #   Endpoint.subscribe(pid, @topic, opts)
-  # end
+  def subscribe() do
+    Endpoint.subscribe(@state_topic)
+  end
 
   def broadcast_state(%Lobby{} = lobby) do
     Endpoint.broadcast(@state_topic, @state_event, lobby)
