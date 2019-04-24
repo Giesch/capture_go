@@ -9,7 +9,7 @@ defmodule CaptureGoWeb.Auth do
   end
 
   def call(conn, _opts) do
-    user = get_current_user(conn)
+    user = conn.assigns[:current_user] || get_current_user(conn)
 
     if user do
       put_current_user(conn, user)
@@ -20,7 +20,7 @@ defmodule CaptureGoWeb.Auth do
 
   defp get_current_user(conn) do
     user_id = get_session(conn, :user_id)
-    conn.assigns[:current_user] || (user_id && Accounts.get_user(user_id))
+    user_id && Accounts.get_user(user_id)
   end
 
   def login_by_email_and_pass(conn, email, given_pass) do

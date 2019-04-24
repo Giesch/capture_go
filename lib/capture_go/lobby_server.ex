@@ -4,8 +4,8 @@ defmodule CaptureGo.LobbyServer do
   alias CaptureGo.Lobby
   alias CaptureGo.GameSupervisor
   alias CaptureGo.GameServer
-  alias CaptureGo.LobbyEvents
   alias CaptureGo.LobbyGame
+  alias CaptureGoWeb.LiveLobby
 
   # TODO
   # clean lobby - background job
@@ -62,7 +62,7 @@ defmodule CaptureGo.LobbyServer do
     # TODO what errors can this call have?
     game_server = GameSupervisor.start_game(request)
     {:ok, new_lobby} = Lobby.open_game(lobby, game)
-    LobbyEvents.broadcast_state(new_lobby)
+    LiveLobby.broadcast_state(new_lobby)
     {:reply, {:ok, game_server}, new_lobby}
   end
 
@@ -73,7 +73,7 @@ defmodule CaptureGo.LobbyServer do
     # TODO what if the game doesn't exist
     with {:ok, _table_view} = success <- GameServer.challenge(game, challenge),
          {:ok, new_lobby} <- Lobby.begin_game(lobby, request.game_id) do
-      LobbyEvents.broadcast_state(new_lobby)
+      LiveLobby.broadcast_state(new_lobby)
       {:reply, success, new_lobby}
     else
       {:error, _reason} = failure -> {:reply, failure, lobby}
@@ -85,7 +85,7 @@ defmodule CaptureGo.LobbyServer do
 
     with {:ok, _table_view} <- GameServer.host_cancel(game, request.token),
          {:ok, new_lobby} <- Lobby.cancel_game(lobby, request.game_id) do
-      LobbyEvents.broadcast_state(new_lobby)
+      LiveLobby.broadcast_state(new_lobby)
       {:reply, :ok, new_lobby}
     else
       {:error, _reason} = failure -> {:reply, failure, lobby}
@@ -95,7 +95,7 @@ defmodule CaptureGo.LobbyServer do
   def handle_call({:end_game, game_id}, _from, %Lobby{} = lobby) do
     case Lobby.end_game(lobby, game_id) do
       {:ok, new_lobby} ->
-        LobbyEvents.broadcast_state(new_lobby)
+        LiveLobby.broadcast_state(new_lobby)
         {:reply, :ok, new_lobby}
 
       {:error, _reason} = failure ->
