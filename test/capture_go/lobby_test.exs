@@ -7,7 +7,7 @@ defmodule CaptureGo.LobbyTest do
   @game_id "my_game_id"
   @game_name "my game"
   @host_name "me"
-  @lobby_game LobbyGame.new(@game_id, @game_name, @host_name)
+  @lobby_game LobbyGame.new(@game_id, @game_name, @host_name, DateTime.utc_now())
 
   test "a new lobby has no games" do
     lobby = Lobby.new()

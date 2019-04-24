@@ -1,0 +1,9 @@
+<ul>
+  <%= for lobby_game <- @games do %>
+    <li>
+      <strong><%= lobby_game.game_name %></strong> (<%= lobby_game.host_name %>)
+      <br />
+      created_at: <%= lobby_game.created_at %>
+    </li>
+  <% end %>
+</ul>

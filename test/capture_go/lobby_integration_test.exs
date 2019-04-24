@@ -15,7 +15,7 @@ defmodule CaptureGo.LobbyIntegrationTest do
   @host_name "host name"
 
   def make_lobby_game(game_id) do
-    LobbyGame.new(game_id, @game_name, @host_name)
+    LobbyGame.new(game_id, @game_name, @host_name, DateTime.utc_now())
   end
 
   setup do

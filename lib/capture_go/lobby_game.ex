@@ -8,9 +8,15 @@ defmodule CaptureGo.LobbyGame do
   defstruct id: nil,
             game_name: nil,
             host_name: nil,
-            challenger_name: nil
+            challenger_name: nil,
+            created_at: nil
 
-  def new(game_id, game_name, host_name) do
-    %LobbyGame{id: game_id, game_name: game_name, host_name: host_name}
+  def new(game_id, game_name, host_name, created_at) do
+    %LobbyGame{
+      id: game_id,
+      game_name: game_name,
+      host_name: host_name,
+      created_at: created_at
+    }
   end
 end
