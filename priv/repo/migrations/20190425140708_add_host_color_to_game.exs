@@ -1,7 +1,7 @@
 defmodule CaptureGo.Repo.Migrations.AddHostColorToGame do
   use Ecto.Migration
 
-  alias CaptureGo.GameRecord.Enums.Color
+  alias CaptureGo.Games.Enums.Color
 
   def change do
     Color.create_type()

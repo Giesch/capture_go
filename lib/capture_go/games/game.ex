@@ -1,9 +1,9 @@
-defmodule CaptureGo.GameRecord.Game do
+defmodule CaptureGo.Games.Game do
   use Ecto.Schema
   import Ecto.Changeset
 
   alias CaptureGo.Accounts
-  alias CaptureGo.GameRecord.Enums
+  alias CaptureGo.Games.Enums
   alias CaptureGo.Goban
 
   schema "games" do
