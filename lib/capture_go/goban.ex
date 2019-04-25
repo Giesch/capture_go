@@ -170,4 +170,40 @@ defmodule CaptureGo.Goban do
   defp on_the_board?(%Goban{size: size}, {x, y}) do
     x >= 0 && x < size && y >= 0 && y < size
   end
+
+  ###############
+  # Persistence
+  #
+
+  @behaviour Ecto.Type
+
+  @impl Ecto.Type
+  def type, do: :binary
+
+  @impl Ecto.Type
+  def cast(binary) when is_binary(binary) do
+    case :erlang.binary_to_term(binary) do
+      %Goban{} = goban -> {:ok, goban}
+      _ -> :error
+    end
+  end
+
+  def cast(_), do: :error
+
+  @impl Ecto.Type
+  def load(binary) when is_binary(binary) do
+    case :erlang.binary_to_term(binary) do
+      %Goban{} = goban -> {:ok, goban}
+      _ -> :error
+    end
+  end
+
+  def load(_), do: :error
+
+  @impl Ecto.Type
+  def dump(%Goban{} = goban) do
+    {:ok, :erlang.term_to_binary(goban)}
+  end
+
+  def dump(_), do: :error
 end

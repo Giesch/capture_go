@@ -4,12 +4,14 @@ defmodule CaptureGo.GameRecord.Game do
 
   alias CaptureGo.Accounts
   alias CaptureGo.GameRecord.Enums
+  alias CaptureGo.Goban
 
   schema "games" do
     field :name, :string
     field :password, :string
-    field :host_color, Enums.Color
-    field :lifecycle_state, Enums.LifecycleState
+    field :host_color, Enums.Color, default: :white
+    field :lifecycle_state, Enums.LifecycleState, default: :open
+    field :goban, Goban, default: Goban.new()
 
     belongs_to :host,
                Accounts.User,
@@ -28,7 +30,8 @@ defmodule CaptureGo.GameRecord.Game do
     :lifecycle_state,
     :host_id,
     :password,
-    :challenger_id
+    :challenger_id,
+    :goban
   ]
 
   @required_fields [
