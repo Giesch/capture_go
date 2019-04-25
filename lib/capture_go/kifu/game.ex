@@ -9,6 +9,7 @@ defmodule CaptureGo.Kifu.Game do
     field :name, :string
     field :password, :string
     field :host_color, Enums.Color
+    field :lifecycle_state, Enums.LifecycleState
 
     belongs_to :host,
                Accounts.User,
