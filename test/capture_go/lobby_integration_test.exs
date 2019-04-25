@@ -5,7 +5,7 @@ defmodule CaptureGo.LobbyIntegrationTest do
   alias CaptureGo.GameServer
   alias CaptureGo.Goban
   alias CaptureGo.LobbyGame
-  alias CaptureGo.Table
+  alias CaptureGo.GameTable
 
   @host_token "host_token"
   @challenger "challenger_token"
@@ -54,12 +54,12 @@ defmodule CaptureGo.LobbyIntegrationTest do
        %{game_id: game_id, lobby_game: lobby_game} do
     assert {:ok, _game_server} = LobbyServer.open_game(lobby_game, @host_token)
     assert {:ok, table} = LobbyServer.begin_game(game_id, @challenger)
-    assert %Table{goban: goban, state: :game_started} = table
+    assert %GameTable{goban: goban, state: :game_started} = table
     assert Goban.new() == goban
 
     game = GameServer.via_tuple(game_id)
     assert {:ok, table} = GameServer.move(game, @challenger, {3, 3})
-    assert %Table{goban: goban, state: :game_started} = table
+    assert %GameTable{goban: goban, state: :game_started} = table
     assert %Goban{board: %{{3, 3} => :black}} = goban
   end
 
@@ -120,7 +120,7 @@ defmodule CaptureGo.LobbyIntegrationTest do
        %{game_id: game_id, lobby_game: lobby_game} do
     assert {:ok, _game_server} = LobbyServer.open_game(lobby_game, @host_token)
     assert {:ok, table} = LobbyServer.begin_game(game_id, @challenger)
-    assert %Table{goban: goban, state: :game_started} = table
+    assert %GameTable{goban: goban, state: :game_started} = table
     assert Goban.new() == goban
     assert {:ok, lobby} = LobbyServer.lobby()
     assert Map.has_key?(lobby.active_games, game_id)
@@ -131,7 +131,7 @@ defmodule CaptureGo.LobbyIntegrationTest do
     assert {:ok, table} = GameServer.move(game, @challenger, {8, 8})
     assert {:ok, table} = GameServer.move(game, @host_token, {0, 1})
 
-    assert %Table{state: :game_over} = table
+    assert %GameTable{state: :game_over} = table
     assert {:ok, lobby} = LobbyServer.lobby()
     refute Map.has_key?(lobby.active_games, game_id)
   end

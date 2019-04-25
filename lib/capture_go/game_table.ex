@@ -1,4 +1,4 @@
-defmodule CaptureGo.Table do
+defmodule CaptureGo.GameTable do
   @moduledoc """
   A data type for the 'meta' rules of the game.
 
@@ -11,7 +11,7 @@ defmodule CaptureGo.Table do
 
   # TODO allow resignation
 
-  alias CaptureGo.Table
+  alias CaptureGo.GameTable
   alias CaptureGo.Goban
   import CaptureGo.ColorUtils
 
@@ -25,21 +25,21 @@ defmodule CaptureGo.Table do
             last_activity: nil
 
   def new(game_id, host_token, password \\ nil) do
-    %Table{game_id: game_id, host_token: host_token, password: password}
+    %GameTable{game_id: game_id, host_token: host_token, password: password}
   end
 
   def challenge(table, token, color, password \\ nil)
 
-  def challenge(%Table{state: :table_open} = table, token, color, password)
+  def challenge(%GameTable{state: :table_open} = table, token, color, password)
       when is_color(color) do
     check_password_and_start(table, password, token, color)
   end
 
-  def challenge(%Table{state: state}, _token, _color, _password) do
+  def challenge(%GameTable{state: state}, _token, _color, _password) do
     invalid_for_state(state)
   end
 
-  defp check_password_and_start(%Table{} = table, password, token, color) do
+  defp check_password_and_start(%GameTable{} = table, password, token, color) do
     if table.password && password != table.password do
       {:error, :unauthorized}
     else
@@ -48,7 +48,7 @@ defmodule CaptureGo.Table do
   end
 
   defp start_game(table, challenger_token, challenger_color) do
-    %Table{
+    %GameTable{
       table
       | state: :game_started,
         challenger_token: challenger_token,
@@ -59,21 +59,21 @@ defmodule CaptureGo.Table do
     }
   end
 
-  def host_cancel(%Table{state: :table_open, host_token: host} = table, token)
+  def host_cancel(%GameTable{state: :table_open, host_token: host} = table, token)
       when token == host do
-    table = %Table{table | state: :host_cancelled}
+    table = %GameTable{table | state: :host_cancelled}
     {:ok, table}
   end
 
-  def host_cancel(%Table{state: :table_open}, _token) do
+  def host_cancel(%GameTable{state: :table_open}, _token) do
     {:error, :unauthorized}
   end
 
-  def host_cancel(%Table{state: state}, _token) do
+  def host_cancel(%GameTable{state: state}, _token) do
     invalid_for_state(state)
   end
 
-  def move(%Table{state: :game_started} = table, token, point) do
+  def move(%GameTable{state: :game_started} = table, token, point) do
     color = table.player_colors[token]
 
     if color do
@@ -83,14 +83,14 @@ defmodule CaptureGo.Table do
     end
   end
 
-  def move(%Table{state: state}, _token, _point) do
+  def move(%GameTable{state: state}, _token, _point) do
     invalid_for_state(state)
   end
 
   defp make_move(table, color, point) do
     case Goban.move(table.goban, color, point) do
       {:ok, goban} ->
-        table = %Table{table | goban: goban} |> win_check()
+        table = %GameTable{table | goban: goban} |> win_check()
         {:ok, table}
 
       {:error, _reason} = failure ->
@@ -98,16 +98,16 @@ defmodule CaptureGo.Table do
     end
   end
 
-  defp win_check(%Table{goban: goban} = table) do
+  defp win_check(%GameTable{goban: goban} = table) do
     if goban.winner do
-      %Table{table | state: :game_over}
+      %GameTable{table | state: :game_over}
     else
       table
     end
   end
 
-  def update_activity(%Table{} = table, time) do
-    %Table{table | last_activity: time}
+  def update_activity(%GameTable{} = table, time) do
+    %GameTable{table | last_activity: time}
   end
 
   defp invalid_for_state(state) do

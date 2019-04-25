@@ -1,12 +1,12 @@
 defmodule CaptureGo.GameServer do
   @moduledoc """
-  The stateful server wrapper for CaptureGo.Table
+  The stateful server wrapper for CaptureGo.GameTable
   """
 
   use GenServer
 
   import CaptureGo.ColorUtils
-  alias CaptureGo.Table
+  alias CaptureGo.GameTable
   alias CaptureGo.GameRegistry
   alias CaptureGo.LobbyServer
 
@@ -50,27 +50,27 @@ defmodule CaptureGo.GameServer do
 
   @impl GenServer
   def init(%{game_id: game_id, token: token, password: password}) do
-    {:ok, Table.new(game_id, token, password)}
+    {:ok, GameTable.new(game_id, token, password)}
   end
 
   @impl GenServer
   def handle_call({:challenge, token, color, password}, _from, table_state) do
-    Table.challenge(table_state, token, color, password)
+    GameTable.challenge(table_state, token, color, password)
     |> pass_through_reply(table_state)
   end
 
   def handle_call({:host_cancel, token}, _from, table_state) do
-    Table.host_cancel(table_state, token)
+    GameTable.host_cancel(table_state, token)
     |> pass_through_reply(table_state)
   end
 
   def handle_call({:move, token, point}, _from, table_state) do
-    Table.move(table_state, token, point)
+    GameTable.move(table_state, token, point)
     |> game_over_check()
     |> pass_through_reply(table_state)
   end
 
-  defp game_over_check({:ok, %Table{state: :game_over} = table} = result) do
+  defp game_over_check({:ok, %GameTable{state: :game_over} = table} = result) do
     LobbyServer.end_game(table.game_id)
     result
   end
