@@ -2,7 +2,7 @@ defmodule CaptureGo.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias CaptureGo.Kifu
+  alias CaptureGo.GameRecord
 
   schema "users" do
     field :email, :string
@@ -11,11 +11,11 @@ defmodule CaptureGo.Accounts.User do
     field :username, :string
 
     has_many :hosted_games,
-             Kifu.Game,
+             GameRecord.Game,
              foreign_key: :host_id
 
     has_many :challenged_games,
-             Kifu.Game,
+             GameRecord.Game,
              foreign_key: :challenger_id
 
     timestamps()

@@ -1,4 +1,4 @@
-defmodule CaptureGo.Kifu.Enums do
+defmodule CaptureGo.GameRecord.Enums do
   import EctoEnum
 
   # The sides in a go game

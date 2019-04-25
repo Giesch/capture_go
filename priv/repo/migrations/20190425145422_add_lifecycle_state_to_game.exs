@@ -1,7 +1,7 @@
 defmodule CaptureGo.Repo.Migrations.AddLifecycleStateToGame do
   use Ecto.Migration
 
-  alias CaptureGo.Kifu.Enums.LifecycleState
+  alias CaptureGo.GameRecord.Enums.LifecycleState
 
   def change do
     LifecycleState.create_type()

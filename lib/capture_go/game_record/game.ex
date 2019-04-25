@@ -1,9 +1,9 @@
-defmodule CaptureGo.Kifu.Game do
+defmodule CaptureGo.GameRecord.Game do
   use Ecto.Schema
   import Ecto.Changeset
 
   alias CaptureGo.Accounts
-  alias CaptureGo.Kifu.Enums
+  alias CaptureGo.GameRecord.Enums
 
   schema "games" do
     field :name, :string
