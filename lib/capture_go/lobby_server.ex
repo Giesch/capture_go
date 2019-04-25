@@ -71,7 +71,7 @@ defmodule CaptureGo.LobbyServer do
     challenge = Map.put(request, :color, :black)
 
     # TODO what if the game doesn't exist
-    with {:ok, _table_view} = success <- GameServer.challenge(game, challenge),
+    with {:ok, _table} = success <- GameServer.challenge(game, challenge),
          {:ok, new_lobby} <- Lobby.begin_game(lobby, request.game_id) do
       LiveLobby.broadcast_state(new_lobby)
       {:reply, success, new_lobby}
@@ -83,7 +83,7 @@ defmodule CaptureGo.LobbyServer do
   def handle_call({:host_cancel, request}, _from, %Lobby{} = lobby) do
     game = GameServer.via_tuple(request.game_id)
 
-    with {:ok, _table_view} <- GameServer.host_cancel(game, request.token),
+    with {:ok, _table} <- GameServer.host_cancel(game, request.token),
          {:ok, new_lobby} <- Lobby.cancel_game(lobby, request.game_id) do
       LiveLobby.broadcast_state(new_lobby)
       {:reply, :ok, new_lobby}

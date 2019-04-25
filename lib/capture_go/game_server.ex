@@ -7,7 +7,6 @@ defmodule CaptureGo.GameServer do
 
   import CaptureGo.Color
   alias CaptureGo.Table
-  alias CaptureGo.TableView
   alias CaptureGo.GameRegistry
   alias CaptureGo.LobbyServer
 
@@ -82,7 +81,7 @@ defmodule CaptureGo.GameServer do
 
   defp pass_through_reply(result, current_table) do
     case result do
-      {:ok, table} -> {:reply, {:ok, TableView.new(table)}, table}
+      {:ok, new_table} = success -> {:reply, success, new_table}
       {:error, _reason} = failure -> {:reply, failure, current_table}
     end
   end

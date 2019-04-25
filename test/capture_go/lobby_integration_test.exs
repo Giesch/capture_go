@@ -3,9 +3,9 @@ defmodule CaptureGo.LobbyIntegrationTest do
 
   alias CaptureGo.LobbyServer
   alias CaptureGo.GameServer
-  alias CaptureGo.TableView
   alias CaptureGo.Goban
   alias CaptureGo.LobbyGame
+  alias CaptureGo.Table
 
   @host_token "host_token"
   @challenger "challenger_token"
@@ -41,7 +41,7 @@ defmodule CaptureGo.LobbyIntegrationTest do
   test "begin_game adds the game id to active games",
        %{game_id: game_id, lobby_game: lobby_game} do
     assert {:ok, game_server} = LobbyServer.open_game(lobby_game, @host_token)
-    assert {:ok, table_view} = LobbyServer.begin_game(game_id, @challenger)
+    assert {:ok, table} = LobbyServer.begin_game(game_id, @challenger)
     assert {:ok, lobby} = LobbyServer.lobby()
     assert Map.has_key?(lobby.active_games, game_id)
   end
@@ -53,12 +53,13 @@ defmodule CaptureGo.LobbyIntegrationTest do
   test "begin_game starts a playable game",
        %{game_id: game_id, lobby_game: lobby_game} do
     assert {:ok, _game_server} = LobbyServer.open_game(lobby_game, @host_token)
-    assert {:ok, table_view} = LobbyServer.begin_game(game_id, @challenger)
-    assert %TableView{goban: Goban.new(), state: :game_started} == table_view
+    assert {:ok, table} = LobbyServer.begin_game(game_id, @challenger)
+    assert %Table{goban: goban, state: :game_started} = table
+    assert Goban.new() == goban
 
     game = GameServer.via_tuple(game_id)
-    assert {:ok, table_view} = GameServer.move(game, @challenger, {3, 3})
-    assert %TableView{goban: goban, state: :game_started} = table_view
+    assert {:ok, table} = GameServer.move(game, @challenger, {3, 3})
+    assert %Table{goban: goban, state: :game_started} = table
     assert %Goban{board: %{{3, 3} => :black}} = goban
   end
 
@@ -94,14 +95,14 @@ defmodule CaptureGo.LobbyIntegrationTest do
   test "a started game cannot be host-cancelled",
        %{game_id: game_id, lobby_game: lobby_game} do
     assert {:ok, _game} = LobbyServer.open_game(lobby_game, @host_token)
-    assert {:ok, _table_view} = LobbyServer.begin_game(game_id, @challenger)
+    assert {:ok, _table} = LobbyServer.begin_game(game_id, @challenger)
     assert {:error, _reason} = LobbyServer.host_cancel(game_id, @host_token)
   end
 
   test "an active game can be ended",
        %{game_id: game_id, lobby_game: lobby_game} do
     assert {:ok, _game} = LobbyServer.open_game(lobby_game, @host_token)
-    assert {:ok, _table_view} = LobbyServer.begin_game(game_id, @challenger)
+    assert {:ok, _table} = LobbyServer.begin_game(game_id, @challenger)
     assert :ok == LobbyServer.end_game(game_id)
 
     assert {:ok, lobby} = LobbyServer.lobby()
@@ -118,18 +119,19 @@ defmodule CaptureGo.LobbyIntegrationTest do
   test "winning a game removes it from the lobby server's active games",
        %{game_id: game_id, lobby_game: lobby_game} do
     assert {:ok, _game_server} = LobbyServer.open_game(lobby_game, @host_token)
-    assert {:ok, table_view} = LobbyServer.begin_game(game_id, @challenger)
-    assert %TableView{goban: Goban.new(), state: :game_started} == table_view
+    assert {:ok, table} = LobbyServer.begin_game(game_id, @challenger)
+    assert %Table{goban: goban, state: :game_started} = table
+    assert Goban.new() == goban
     assert {:ok, lobby} = LobbyServer.lobby()
     assert Map.has_key?(lobby.active_games, game_id)
 
     game = GameServer.via_tuple(game_id)
-    assert {:ok, table_view} = GameServer.move(game, @challenger, {0, 0})
-    assert {:ok, table_view} = GameServer.move(game, @host_token, {1, 0})
-    assert {:ok, table_view} = GameServer.move(game, @challenger, {8, 8})
-    assert {:ok, table_view} = GameServer.move(game, @host_token, {0, 1})
+    assert {:ok, table} = GameServer.move(game, @challenger, {0, 0})
+    assert {:ok, table} = GameServer.move(game, @host_token, {1, 0})
+    assert {:ok, table} = GameServer.move(game, @challenger, {8, 8})
+    assert {:ok, table} = GameServer.move(game, @host_token, {0, 1})
 
-    assert %TableView{state: :game_over} = table_view
+    assert %Table{state: :game_over} = table
     assert {:ok, lobby} = LobbyServer.lobby()
     refute Map.has_key?(lobby.active_games, game_id)
   end
