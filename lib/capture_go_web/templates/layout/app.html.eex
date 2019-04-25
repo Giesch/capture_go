@@ -15,11 +15,10 @@
       <ul class="is-pulled-right">
         <%= if @current_user do %>
           <li><%= @current_user.username %></li>
-          <button class="button">
-            <%= link "Log out",
-                  to: Routes.session_path(@conn, :delete, @current_user),
-                  method: "delete" %>
-          </button>
+          <%= link "Log out",
+                class: "button",
+                to: Routes.session_path(@conn, :delete, @current_user),
+                method: "delete" %>
         <% else %>
           <button class="button">
             <%= link "Register", to: Routes.user_path(@conn, :new) %>

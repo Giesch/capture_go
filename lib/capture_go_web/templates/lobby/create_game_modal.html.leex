@@ -1,0 +1,29 @@
+<div class="modal <%= is_active(@open) %>">
+  <div class="modal-background" phx-click="close_create_game">
+  </div>
+
+  <div class="modal-card">
+    <%= form_for @request, "#",
+          [phx_change: :validate_game, phx_submit: :create_game],
+          fn f -> %>
+
+    <header class="modal-card-head">
+      <p class="modal-card-title">Create Game</p>
+    </header>
+
+    <section class="modal-card-body">
+      <%= label f, :game_name, placeholder: "Game Name" %>
+      <%= text_input f, :game_name %>
+      <%= error_tag f, :game_name %>
+    </section>
+
+    <footer class="modal-card-foot">
+      <%= submit "Create Game", class: "button is-success" %>
+      <button class="button" phx-click="close_create_game">
+        Cancel
+      </button>
+    </footer>
+
+    <% end %>
+  </div>
+</div>

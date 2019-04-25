@@ -12,8 +12,7 @@ defmodule CaptureGo.GameServer do
   alias CaptureGo.LobbyServer
 
   # TODO
-  # add channel broadcasts;
-  #   need another module that handles channel names
+  # add broadcasts of the game state for live view
   # handle players leaving; have the game time out due to inactivity
   #   use update_activity when doing other tasks (make part of data model?)
   #   background job to clean out inactive games

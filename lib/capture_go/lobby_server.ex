@@ -8,7 +8,7 @@ defmodule CaptureGo.LobbyServer do
   alias CaptureGoWeb.LiveLobby
 
   # TODO
-  # clean lobby - background job
+  # clean lobby - background job (how often? minutes? days?)
   #   remove inactive tables (as defined by model)
   #   remove invalid/dead game pids
   #   UI for when your game got killed: dump into lobby with error message?

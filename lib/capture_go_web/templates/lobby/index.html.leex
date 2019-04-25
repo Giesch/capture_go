@@ -1,21 +1,23 @@
 <div class="columns">
   <div class="column">
     <%= if @current_user do %>
-      <button class="button primary" phx-click="create_game">
+      <button class="button is-info" phx-click="open_create_game">
         Create Game
       </button>
     <% end %>
   </div>
 
   <div class="column">
-    <h1>Open Games</h1>
-    <br/>
+    <h1>Open Games</h1> <br/>
     <%= render "game_list.html", games: @open_games %>
   </div>
 
   <div class="column">
-    <h1>Active Games</h1>
-    <br/>
+    <h1>Active Games</h1> <br/>
     <%= render "game_list.html", games: @active_games %>
   </div>
+
+  <%= render "create_game_modal.html",
+        open: @create_game_modal_open,
+        request: @create_game_request %>
 </div>
