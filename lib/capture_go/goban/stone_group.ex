@@ -3,7 +3,7 @@ defmodule CaptureGo.Goban.StoneGroup do
   A data type for a connected group of stones
   """
 
-  import CaptureGo.Color
+  import CaptureGo.ColorUtils
   alias CaptureGo.Goban.StoneGroup
 
   defstruct color: nil,

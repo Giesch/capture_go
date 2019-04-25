@@ -1,4 +1,4 @@
-defmodule CaptureGo.Color do
+defmodule CaptureGo.ColorUtils do
   defguard is_color(color) when color in [:black, :white]
 
   def opposite_color(:black), do: :white

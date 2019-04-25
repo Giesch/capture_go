@@ -3,7 +3,7 @@ defmodule CaptureGo.Goban do
   A data type for the go board
   """
 
-  import CaptureGo.Color
+  import CaptureGo.ColorUtils
   alias CaptureGo.Goban
   alias CaptureGo.Goban.StoneGroup
   alias CaptureGo.Goban.GroupData

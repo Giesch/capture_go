@@ -13,7 +13,7 @@ defmodule CaptureGo.Table do
 
   alias CaptureGo.Table
   alias CaptureGo.Goban
-  import CaptureGo.Color
+  import CaptureGo.ColorUtils
 
   defstruct state: :table_open,
             goban: Goban.new(),

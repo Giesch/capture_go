@@ -2,7 +2,7 @@ defmodule CaptureGo.GobanTest do
   use ExUnit.Case, async: true
 
   alias CaptureGo.Goban
-  import CaptureGo.Color
+  import CaptureGo.ColorUtils
 
   test "a new goban has correct defaults" do
     goban = Goban.new()

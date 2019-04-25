@@ -5,7 +5,7 @@ defmodule CaptureGo.GameServer do
 
   use GenServer
 
-  import CaptureGo.Color
+  import CaptureGo.ColorUtils
   alias CaptureGo.Table
   alias CaptureGo.GameRegistry
   alias CaptureGo.LobbyServer
