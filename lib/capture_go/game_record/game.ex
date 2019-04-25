@@ -22,10 +22,28 @@ defmodule CaptureGo.GameRecord.Game do
     timestamps()
   end
 
+  @allowed_fields [
+    :name,
+    :host_color,
+    :lifecycle_state,
+    :host_id,
+    :password,
+    :challenger_id
+  ]
+
+  @required_fields [
+    :name,
+    :host_color,
+    :lifecycle_state,
+    :host_id
+  ]
+
   @doc false
   def changeset(game, attrs) do
     game
-    |> cast(attrs, [:name, :password])
-    |> validate_required([:name])
+    |> cast(attrs, @allowed_fields)
+    |> validate_required(@required_fields)
+    |> foreign_key_constraint(:host_id)
+    |> foreign_key_constraint(:challenger_id)
   end
 end

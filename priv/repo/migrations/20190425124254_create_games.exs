@@ -11,8 +11,7 @@ defmodule CaptureGo.Repo.Migrations.CreateGames do
           null: false
 
       add :challenger_id,
-          references(:users, on_delete: :nothing),
-          null: false
+          references(:users, on_delete: :nothing)
 
       timestamps()
     end
