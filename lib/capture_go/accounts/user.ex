@@ -2,11 +2,21 @@ defmodule CaptureGo.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias CaptureGo.Game
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true
     field :password_hash, :string
     field :username, :string
+
+    has_many :hosted_games,
+             Game,
+             foreign_key: :host_id
+
+    has_many :challenged_games,
+             Game,
+             foreign_key: :challenger_id
 
     timestamps()
   end
