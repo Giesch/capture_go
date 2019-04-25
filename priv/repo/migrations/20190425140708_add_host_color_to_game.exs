@@ -7,7 +7,7 @@ defmodule CaptureGo.Repo.Migrations.AddHostColorToGame do
     Color.create_type()
 
     alter table(:games) do
-      add :host_color, Color.type()
+      add :host_color, Color.type(), null: false
     end
   end
 end

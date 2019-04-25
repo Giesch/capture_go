@@ -40,8 +40,6 @@ defmodule CaptureGo.LobbyServer do
     GenServer.call(__MODULE__, {:end_game, game_id})
   end
 
-  # TODO something better than this; a submodule struct or whatever
-  # also, if open game is just different then make it just different
   defp game_state_request(game_id, player_token, password \\ nil) do
     %{game_id: game_id, token: player_token, password: password}
   end
@@ -50,6 +48,8 @@ defmodule CaptureGo.LobbyServer do
 
   @impl GenServer
   def init(%Lobby{} = lobby) do
+    # TODO send self a message to load all games from db
+    # also, implement attempting to load a game
     {:ok, lobby}
   end
 
