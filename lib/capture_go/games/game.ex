@@ -10,7 +10,8 @@ defmodule CaptureGo.Games.Game do
 
   schema "games" do
     field :name, :string
-    field :password, :string
+    field :password, :string, virtual: true
+    field :password_hash, :string
     field :host_color, Enums.Color, default: :white
     field :state, Enums.LifecycleState, default: :open
     field :goban, Goban, default: Goban.new()
@@ -62,5 +63,17 @@ defmodule CaptureGo.Games.Game do
     |> validate_required(@required_fields)
     |> foreign_key_constraint(:host_id)
     |> foreign_key_constraint(:challenger_id)
+    |> put_password_hash()
+  end
+
+  def put_password_hash(changeset) do
+    case changeset do
+      %Ecto.Changeset{valid?: true, changes: %{password: pw}} ->
+        hashed = Argon2.hash_pwd_salt(pw)
+        put_change(changeset, :password_hash, hashed)
+
+      _ ->
+        changeset
+    end
   end
 end

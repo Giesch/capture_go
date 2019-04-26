@@ -11,15 +11,13 @@ defmodule CaptureGo.Games.Lifecycle do
 
   def challenge(game, challenger_id, password \\ nil)
 
-  # TODO hash game passwords as well as account passwords
-  def challenge(%Game{state: :open, password: game_pw}, _ch_id, password)
-      when game_pw != password do
-    @error_unauthorized
-  end
-
-  def challenge(%Game{state: :open} = game, challenger_id, _password) do
-    attrs = %{state: :started, challenger_id: challenger_id}
-    {:ok, Game.changeset(game, attrs)}
+  def challenge(%Game{state: :open} = game, challenger_id, password) do
+    if game_password_valid?(game, password) do
+      attrs = %{state: :started, challenger_id: challenger_id}
+      {:ok, Game.changeset(game, attrs)}
+    else
+      @error_unauthorized
+    end
   end
 
   def challenge(%Game{state: state}, _challenger_id, _password) do
@@ -65,7 +63,7 @@ defmodule CaptureGo.Games.Lifecycle do
     end
   end
 
-  defp win_check(goban) do
+  defp win_check(%Goban{} = goban) do
     if goban.winner do
       %{goban: goban, state: :over}
     else
@@ -75,5 +73,19 @@ defmodule CaptureGo.Games.Lifecycle do
 
   defp invalid_for_state(state) do
     {:error, {:invalid_for_state, state}}
+  end
+
+  defp game_password_valid?(%Game{password_hash: nil}, _password) do
+    true
+  end
+
+  defp game_password_valid?(%Game{} = game, password)
+       when is_binary(password) do
+    Argon2.verify_pass(password, game.password_hash)
+  end
+
+  defp game_password_valid?(%Game{}, _) do
+    Argon2.no_user_verify()
+    false
   end
 end

@@ -19,12 +19,12 @@ defmodule CaptureGo.Games do
     |> update_on_success()
   end
 
-  def host_cancel(game, host) do
+  def host_cancel(%Game{} = game, %User{} = host) do
     Lifecycle.host_cancel(game, host)
     |> update_on_success()
   end
 
-  def move(game, %User{id: user_id}, point) do
+  def move(%Game{} = game, %User{id: user_id}, point) do
     Lifecycle.move(game, user_id, point)
     |> update_on_success()
   end
