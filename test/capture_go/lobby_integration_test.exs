@@ -31,23 +31,12 @@ defmodule CaptureGo.LobbyIntegrationTest do
     assert Map.has_key?(lobby.open_games, game_id)
   end
 
-  @tag :pending
-  test "open game starts a game server",
-       %{game_id: game_id, lobby_game: lobby_game} do
-    assert {:ok, game_server} = LobbyServer.open_game(lobby_game, @host_token)
-    _via_tuple = GameServer.via_tuple(game_id)
-  end
-
   test "begin_game adds the game id to active games",
        %{game_id: game_id, lobby_game: lobby_game} do
     assert {:ok, game_server} = LobbyServer.open_game(lobby_game, @host_token)
     assert {:ok, table} = LobbyServer.begin_game(game_id, @challenger)
     assert {:ok, lobby} = LobbyServer.lobby()
     assert Map.has_key?(lobby.active_games, game_id)
-  end
-
-  @tag :pending
-  test "begin game fails gracefully if the game server is missing" do
   end
 
   test "begin_game starts a playable game",

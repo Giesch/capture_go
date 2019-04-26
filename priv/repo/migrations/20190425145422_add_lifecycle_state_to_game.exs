@@ -7,7 +7,7 @@ defmodule CaptureGo.Repo.Migrations.AddLifecycleStateToGame do
     LifecycleState.create_type()
 
     alter table(:games) do
-      add :lifecycle_state, LifecycleState.type(), null: false
+      add :state, LifecycleState.type(), null: false
     end
   end
 end

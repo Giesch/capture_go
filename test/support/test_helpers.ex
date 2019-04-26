@@ -1,8 +1,9 @@
 defmodule CaptureGo.TestHelpers do
   alias CaptureGo.Accounts
+  alias CaptureGo.Games
 
   def user_fixture(attrs \\ %{}) do
-    username = "user#{System.unique_integer([:positive])}"
+    username = "user_#{System.unique_integer([:positive])}"
 
     defaults = %{
       username: username,
@@ -16,5 +17,20 @@ defmodule CaptureGo.TestHelpers do
       |> Accounts.register_user()
 
     user
+  end
+
+  def game_fixture(attrs \\ %{}) do
+    game_name = "game_#{System.unique_integer([:positive])}"
+
+    defaults = %{
+      name: game_name
+    }
+
+    {:ok, game} =
+      attrs
+      |> Enum.into(defaults)
+      |> Games.create_game()
+
+    game
   end
 end

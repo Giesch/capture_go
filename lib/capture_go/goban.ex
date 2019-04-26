@@ -188,6 +188,10 @@ defmodule CaptureGo.Goban do
     end
   end
 
+  def cast(%Goban{} = goban) do
+    {:ok, goban}
+  end
+
   def cast(_), do: :error
 
   @impl Ecto.Type
