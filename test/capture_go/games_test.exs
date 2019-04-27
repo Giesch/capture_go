@@ -38,6 +38,22 @@ defmodule CaptureGo.GamesTest do
       assert {:error, changeset} = Games.create_game(attrs)
       assert %{name: ["can't be blank"]} == errors_on(changeset)
     end
+
+    test "creating a game broadcasts it to live_lobby", %{host: host} do
+      # these strings must match the module attributes in live_lobby.ex
+      topic = "live_lobby"
+      event = "new_game"
+      CaptureGoWeb.Endpoint.subscribe(topic)
+
+      attrs = %{name: "our game", host_id: host.id}
+      assert {:ok, game} = Games.create_game(attrs)
+
+      assert_receive %Phoenix.Socket.Broadcast{
+        topic: ^topic,
+        event: ^event,
+        payload: ^game
+      }
+    end
   end
 
   describe "challenge" do
@@ -83,6 +99,22 @@ defmodule CaptureGo.GamesTest do
          %{host: host, game: game} do
       assert {:error, :self_challenge} == Games.challenge(game, host)
     end
+
+    test "challenging a game broadcasts it to live_lobby",
+         %{game: game, challenger: challenger} do
+      # these strings must match the module attributes in live_lobby.ex
+      topic = "live_lobby"
+      event = "started_game"
+      CaptureGoWeb.Endpoint.subscribe(topic)
+
+      assert {:ok, game} = Games.challenge(game, challenger)
+
+      assert_receive %Phoenix.Socket.Broadcast{
+        topic: ^topic,
+        event: ^event,
+        payload: ^game
+      }
+    end
   end
 
   describe "host_cancel" do
@@ -112,6 +144,22 @@ defmodule CaptureGo.GamesTest do
       assert {:ok, game} = Games.challenge(game, challenger)
       assert {:error, reason} = Games.host_cancel(game, host)
       assert {:invalid_for_state, :started} == reason
+    end
+
+    test "cancelling a game broadcasts it to live_lobby",
+         %{game: game, host: host} do
+      # these strings must match the module attributes in live_lobby.ex
+      topic = "live_lobby"
+      event = "ended_game"
+      CaptureGoWeb.Endpoint.subscribe(topic)
+
+      assert {:ok, game} = Games.host_cancel(game, host)
+
+      assert_receive %Phoenix.Socket.Broadcast{
+        topic: ^topic,
+        event: ^event,
+        payload: ^game
+      }
     end
   end
 
@@ -152,10 +200,8 @@ defmodule CaptureGo.GamesTest do
          %{game: game, host: host, challenger: challenger} do
       assert {:ok, game} = Games.challenge(game, challenger)
       assert game.state == :started
-      assert {:ok, game} = Games.move(game, challenger, {0, 0})
-      assert {:ok, game} = Games.move(game, host, {1, 0})
-      assert {:ok, game} = Games.move(game, challenger, {8, 8})
-      assert {:ok, game} = Games.move(game, host, {0, 1})
+
+      game = host_wins(game, host, challenger)
 
       assert game.goban.winner == :white
       assert game.state == :over
@@ -165,14 +211,38 @@ defmodule CaptureGo.GamesTest do
          %{game: game, host: host, challenger: challenger} do
       assert {:ok, game} = Games.challenge(game, challenger)
       assert game.state == :started
-      assert {:ok, game} = Games.move(game, challenger, {0, 0})
-      assert {:ok, game} = Games.move(game, host, {1, 0})
-      assert {:ok, game} = Games.move(game, challenger, {8, 8})
-      assert {:ok, game} = Games.move(game, host, {0, 1})
+
+      game = host_wins(game, host, challenger)
       assert game.state == :over
 
       assert {:error, reason} = Games.move(game, challenger, {3, 3})
       assert reason == {:invalid_for_state, :over}
+    end
+
+    test "winning a game broadcasts to live_lobby",
+         %{game: game, host: host, challenger: challenger} do
+      # these strings must match the module attributes in live_lobby.ex
+      topic = "live_lobby"
+      event = "ended_game"
+      CaptureGoWeb.Endpoint.subscribe(topic)
+
+      assert {:ok, game} = Games.challenge(game, challenger)
+      assert game.state == :started
+      game = host_wins(game, host, challenger)
+
+      assert_receive %Phoenix.Socket.Broadcast{
+        topic: ^topic,
+        event: ^event,
+        payload: ^game
+      }
+    end
+
+    def host_wins(game, host, challenger) do
+      assert {:ok, game} = Games.move(game, challenger, {0, 0})
+      assert {:ok, game} = Games.move(game, host, {1, 0})
+      assert {:ok, game} = Games.move(game, challenger, {8, 8})
+      assert {:ok, game} = Games.move(game, host, {0, 1})
+      game
     end
   end
 
