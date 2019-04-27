@@ -78,6 +78,11 @@ defmodule CaptureGo.GamesTest do
       assert game.state == :started
       assert game.challenger_id == challenger.id
     end
+
+    test "challenging your own game is an error",
+         %{host: host, game: game} do
+      assert {:error, :self_challenge} == Games.challenge(game, host)
+    end
   end
 
   describe "host_cancel" do

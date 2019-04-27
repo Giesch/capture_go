@@ -11,6 +11,11 @@ defmodule CaptureGo.Games.Lifecycle do
 
   def challenge(game, challenger_id, password \\ nil)
 
+  def challenge(%Game{state: :open, host_id: host_id}, challenger_id, _password)
+      when host_id == challenger_id do
+    {:error, :self_challenge}
+  end
+
   def challenge(%Game{state: :open} = game, challenger_id, password) do
     if game_password_valid?(game, password) do
       attrs = %{state: :started, challenger_id: challenger_id}
