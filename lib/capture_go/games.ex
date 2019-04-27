@@ -11,6 +11,9 @@ defmodule CaptureGo.Games do
   alias CaptureGo.Repo
   alias CaptureGoWeb.LiveLobby
 
+  # TODO allow resignation and passing
+  # TODO background job for removing inactive games
+
   def create_game(attrs \\ %{}) do
     %Game{}
     |> Game.new_game_changeset(attrs)

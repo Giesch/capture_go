@@ -8,13 +8,8 @@ defmodule CaptureGo.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      # Start the Ecto repository
       CaptureGo.Repo,
-      # Start the endpoint when the application starts
-      CaptureGoWeb.Endpoint,
-      CaptureGo.System
-      # Starts a worker by calling: CaptureGo.Worker.start_link(arg)
-      # {CaptureGo.Worker, arg},
+      CaptureGoWeb.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
