@@ -2,20 +2,29 @@ defmodule CaptureGoWeb.LiveLobby do
   use Phoenix.LiveView
 
   alias CaptureGo.Accounts
-  alias CaptureGo.Lobby
-  alias CaptureGo.LobbyGame
-  alias CaptureGo.LobbyServer
+  alias CaptureGo.Games
+  alias CaptureGo.Games.Game
   alias CaptureGoWeb.CreateGameRequest
   alias CaptureGoWeb.Endpoint
-  alias CaptureGoWeb.LobbyView
   alias CaptureGoWeb.LobbyAssigns
-  alias Phoenix.Socket.Broadcast
+  alias CaptureGoWeb.LobbyView
 
-  @state_topic "lobby_state"
-  @state_event "state_update"
+  @topic "live_lobby"
 
-  def broadcast_state(%Lobby{} = lobby) do
-    Endpoint.broadcast(@state_topic, @state_event, lobby)
+  @new_game_event "new_game"
+  @started_game_event "started_game"
+  @ended_game_event "ended_game"
+
+  def broadcast_new_game(%Game{} = game) do
+    Endpoint.broadcast(@topic, @new_game_event, game)
+  end
+
+  def broadcast_started_game(%Game{} = game) do
+    Endpoint.broadcast(@topic, @started_game_event, game)
+  end
+
+  def broadcast_ended_game(%Game{} = game) do
+    Endpoint.broadcast(@topic, @ended_game_event, game)
   end
 
   @impl Phoenix.LiveView
@@ -28,10 +37,9 @@ defmodule CaptureGoWeb.LiveLobby do
     # TODO find a nice way to handle assigning/using current_user
     #   make a socket auth module?
     current_user = user_id && Accounts.get_user(user_id)
-    {:ok, lobby} = LobbyServer.lobby()
-
+    {:ok, lobby} = Games.lobby()
     socket = LobbyAssigns.on_mount(socket, current_user, lobby)
-    Endpoint.subscribe(@state_topic)
+    Endpoint.subscribe(@topic)
     {:ok, socket}
   end
 
@@ -49,8 +57,7 @@ defmodule CaptureGoWeb.LiveLobby do
 
     if changeset.valid? do
       user = socket.assigns.current_user
-      game = new_game(req, user.username)
-      LobbyServer.open_game(game, user.id)
+      create_game(req, user)
       {:noreply, LobbyAssigns.close_create_game_modal(socket)}
     else
       {:noreply, LobbyAssigns.assign_game_request(socket, req)}
@@ -62,14 +69,24 @@ defmodule CaptureGoWeb.LiveLobby do
   end
 
   @impl Phoenix.LiveView
-  def handle_info(
-        %Broadcast{topic: @state_topic, event: @state_event, payload: lobby},
-        socket
-      ) do
-    {:noreply, LobbyAssigns.assign_games(socket, lobby)}
+  def handle_info(%{topic: @topic, payload: game} = msg, socket) do
+    {:noreply, handle_game_event(socket, msg.event, game)}
   end
 
-  defp new_game(%{"game_name" => game_name}, user_name) do
-    LobbyGame.new(make_ref(), game_name, user_name, DateTime.utc_now())
+  defp handle_game_event(socket, @new_game_event, %Game{} = game) do
+    LobbyAssigns.new_game(socket, game)
+  end
+
+  defp handle_game_event(socket, @started_game_event, %Game{} = game) do
+    LobbyAssigns.start_game(socket, game)
+  end
+
+  defp handle_game_event(socket, @ended_game_event, %Game{} = game) do
+    LobbyAssigns.remove_game(socket, game)
+  end
+
+  defp create_game(%{"game_name" => name} = _request, host) do
+    attrs = %{name: name, host_id: host.id}
+    Games.create_game(attrs)
   end
 end

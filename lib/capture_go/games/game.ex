@@ -27,23 +27,6 @@ defmodule CaptureGo.Games.Game do
     timestamps()
   end
 
-  @allowed_fields [
-    :name,
-    :host_color,
-    :state,
-    :host_id,
-    :password,
-    :challenger_id,
-    :goban
-  ]
-
-  @required_fields [
-    :name,
-    :host_color,
-    :state,
-    :host_id
-  ]
-
   def participant?(%Game{} = game, user_id) do
     user_id && (user_id == game.host_id || user_id == game.challenger_id)
   end
@@ -56,14 +39,51 @@ defmodule CaptureGo.Games.Game do
     end
   end
 
+  @allowed_fields [
+    :name,
+    :host_color,
+    :state,
+    :host_id,
+    :password,
+    :challenger_id,
+    :goban
+  ]
+
   @doc false
   def changeset(game, attrs \\ %{}) do
     game
     |> cast(attrs, @allowed_fields)
+    |> validate_game()
+    |> put_password_hash()
+  end
+
+  @new_game_allowed_fields [
+    :name,
+    :host_color,
+    :host_id,
+    :password,
+    :goban
+  ]
+
+  def new_game_changeset(game, attrs \\ %{}) do
+    game
+    |> cast(attrs, @new_game_allowed_fields)
+    |> validate_game()
+    |> put_password_hash()
+  end
+
+  @required_fields [
+    :name,
+    :host_color,
+    :state,
+    :host_id
+  ]
+
+  defp validate_game(game) do
+    game
     |> validate_required(@required_fields)
     |> foreign_key_constraint(:host_id)
     |> foreign_key_constraint(:challenger_id)
-    |> put_password_hash()
   end
 
   def put_password_hash(changeset) do

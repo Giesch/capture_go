@@ -170,4 +170,48 @@ defmodule CaptureGo.GamesTest do
       assert reason == {:invalid_for_state, :over}
     end
   end
+
+  describe "lobby" do
+    setup do
+      host = user_fixture()
+      challenger = user_fixture()
+      {:ok, host: host, challenger: challenger}
+    end
+
+    test "newly created games appear in open games",
+         %{host: host} do
+      assert {:ok, %{open_games: open_games}} = Games.lobby()
+      assert Enum.empty?(open_games)
+
+      game = game_fixture(host_id: host.id)
+      assert {:ok, %{open_games: open_games}} = Games.lobby()
+      assert Enum.any?(open_games, fn g -> game.id == g.id end)
+    end
+
+    test "challenged games move into active_games",
+         %{host: host, challenger: challenger} do
+      assert {:ok, %{open_games: open_games}} = Games.lobby()
+      assert Enum.empty?(open_games)
+
+      game_1 = game_fixture(host_id: host.id)
+      game_2 = game_fixture(host_id: host.id)
+      assert {:ok, game_1} = Games.challenge(game_1, challenger)
+
+      assert {:ok, %{open_games: open_games, active_games: active_games}} = Games.lobby()
+
+      contains_game_1? = fn games ->
+        Enum.any?(games, fn g -> game_1.id == g.id end)
+      end
+
+      contains_game_2? = fn games ->
+        Enum.any?(games, fn g -> game_2.id == g.id end)
+      end
+
+      refute contains_game_1?.(open_games)
+      assert contains_game_1?.(active_games)
+
+      assert contains_game_2?.(open_games)
+      refute contains_game_2?.(active_games)
+    end
+  end
 end
