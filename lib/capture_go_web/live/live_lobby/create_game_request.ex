@@ -1,9 +1,10 @@
-defmodule CaptureGoWeb.CreateGameRequest do
+defmodule CaptureGoWeb.LiveLobby.CreateGameRequest do
   import Ecto.Changeset
 
   alias __MODULE__
 
   defstruct game_name: ""
+
   @types %{game_name: :string}
 
   # the :action field is typically added by Repo calls

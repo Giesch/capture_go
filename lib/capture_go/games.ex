@@ -6,13 +6,18 @@ defmodule CaptureGo.Games do
   import Ecto.Query, warn: false
 
   alias CaptureGo.Accounts.User
-  alias CaptureGo.Games.Game
-  alias CaptureGo.Games.Lifecycle
+  alias CaptureGo.Games.{Game, Lifecycle}
   alias CaptureGo.Repo
-  alias CaptureGoWeb.LiveLobby
+  alias CaptureGoWeb.{LiveGame, LiveLobby}
 
   # TODO allow resignation and passing
   # TODO background job for removing inactive games
+
+  def get_game!(id) do
+    Game
+    |> Repo.get!(id)
+    |> Repo.preload([:host, :challenger])
+  end
 
   def create_game(attrs \\ %{}) do
     %Game{}
@@ -46,7 +51,7 @@ defmodule CaptureGo.Games do
       where: g.state == ^:started,
       order_by: g.updated_at,
       limit: ^size,
-      preload: :host
+      preload: [:host, :challenger]
   end
 
   def challenge(%Game{} = game, %User{} = challenger, password \\ nil) do
@@ -64,14 +69,16 @@ defmodule CaptureGo.Games do
   def move(%Game{} = game, %User{id: user_id}, point) do
     Lifecycle.move(game, user_id, point)
     |> update_on_success()
-    |> call_on_success(&broadcast_if_game_over(&1))
+    |> call_on_success(&broadcast_move(&1))
   end
 
-  defp broadcast_if_game_over(%Game{state: :over} = game) do
-    LiveLobby.broadcast_ended_game(game)
-  end
+  defp broadcast_move(%Game{state: state} = game) do
+    LiveGame.broadcast_game_change(game)
 
-  defp broadcast_if_game_over(_game), do: nil
+    if state == :over do
+      LiveLobby.broadcast_ended_game(game)
+    end
+  end
 
   defp update_on_success(result) do
     case result do

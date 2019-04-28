@@ -90,7 +90,6 @@ defmodule CaptureGo.Games.Lifecycle do
   end
 
   defp game_password_valid?(%Game{}, _) do
-    Argon2.no_user_verify()
     false
   end
 end

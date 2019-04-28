@@ -1,4 +1,4 @@
-defmodule CaptureGoWeb.LobbyAssigns do
+defmodule CaptureGoWeb.LiveLobby.LobbyAssigns do
   @moduledoc """
   Manages the socket assigns for LiveLobby.
   Assigns:
@@ -9,7 +9,7 @@ defmodule CaptureGoWeb.LobbyAssigns do
     :create_game_request
   """
 
-  alias CaptureGoWeb.CreateGameRequest
+  alias CaptureGoWeb.LiveLobby.CreateGameRequest
   alias Phoenix.LiveView
 
   def on_mount(socket, current_user, lobby) do

@@ -19,6 +19,7 @@ defmodule CaptureGoWeb.Router do
     pipe_through :browser
 
     live "/", LiveLobby, session: [:user_id], as: "lobby"
+    resources "/games", GamesController, only: [:show]
 
     resources "/users", UserController, only: [:new, :create]
     resources "/sessions", SessionController, only: [:new, :create, :delete]
