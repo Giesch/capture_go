@@ -54,8 +54,22 @@ defmodule CaptureGo.Games do
       preload: [:host, :challenger]
   end
 
-  def challenge(%Game{} = game, %User{} = challenger, password \\ nil) do
-    Lifecycle.challenge(game, challenger.id, password)
+  def challenge(game_or_game_id, challenger, password \\ nil)
+
+  def challenge(%Game{} = game, %User{} = challenger, password) do
+    do_challenge(game, challenger.id, password)
+  end
+
+  def challenge(game_id, %User{} = challenger, password)
+      when is_integer(game_id) do
+    case Repo.get(Game, game_id) do
+      nil -> {:error, :no_game}
+      game -> do_challenge(game, challenger.id, password)
+    end
+  end
+
+  defp do_challenge(%Game{} = game, challenger_id, password) do
+    Lifecycle.challenge(game, challenger_id, password)
     |> update_on_success()
     |> call_on_success(&LiveLobby.broadcast_started_game(&1))
   end

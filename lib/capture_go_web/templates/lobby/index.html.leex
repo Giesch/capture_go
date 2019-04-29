@@ -9,12 +9,34 @@
 
   <div class="column">
     <h1>Open Games</h1> <br/>
-    <%= render "game_list.html", games: @open_games %>
+
+    <ul>
+      <%= for game <- @open_games do %>
+        <li>
+          <strong><%= game.name %></strong> (<%= game.host.username %>)
+          <br />
+
+          <%= if @current_user.id != game.host_id do %>
+            <%= game_link(@socket, game) %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
   </div>
 
   <div class="column">
     <h1>Active Games</h1> <br/>
-    <%= render "game_list.html", games: @active_games %>
+
+    <ul>
+      <%= for game <- @active_games do %>
+        <li>
+          <strong><%= game.name %></strong> (<%= game.host.username %>)
+          <br />
+
+          <%= game_link(@socket, game) %>
+        </li>
+      <% end %>
+    </ul>
   </div>
 
   <%= render "create_game_modal.html",

@@ -18,70 +18,70 @@ defmodule CaptureGoWeb.GamesView do
   @star_point_radius 7
 
   def nine_by_nine() do
-    for_all_intersections(&render_intersection/1)
+    map_intersections(&render_intersection/1)
   end
 
   def star_points() do
     for x <- [2, 4, 6], y <- [2, 4, 6] do
-      %{x_pos: x_pos, y_pos: y_pos} = find_intersection_position({x, y})
+      %{x_pos: x_pos, y_pos: y_pos} = intersection_position({x, y})
       circle(%{cx: x_pos, cy: y_pos, r: @star_point_radius})
     end
   end
 
   def render_stones(goban) do
-    for_all_intersections(fn props ->
-      props
-      |> Map.put(:goban, goban)
-      |> stone
+    map_intersections(fn intersection ->
+      stone(intersection, goban)
     end)
   end
 
   # General
 
-  defp for_all_intersections(render_fn) do
+  defp map_intersections(render_fn) do
     for x <- 0..8, y <- 0..8 do
       {x, y}
-      |> find_intersection_position()
+      |> intersection_position()
       |> render_fn.()
     end
   end
 
-  defp find_intersection_position({x, y}) do
-    %{x: x, y: y, x_pos: find_position(x), y_pos: find_position(y)}
+  defp intersection_position({x, y}) do
+    %{x: x, y: y, x_pos: position(x), y_pos: position(y)}
   end
 
-  defp find_position(i) do
-    i * (@intersection_size_length / 2) + @margin
+  defp position(rank) do
+    rank * (@intersection_size_length / 2) + @margin
   end
 
   # Stones
 
-  defp stone(%{x: x, y: y, x_pos: x_pos, y_pos: y_pos, goban: goban}) do
+  defp stone(%{x: x, y: y, x_pos: x_pos, y_pos: y_pos}, goban) do
     {:ok, color} = Goban.stone_at(goban, {x, y})
-
-    style =
-      case color do
-        :white -> "fill:white;stroke:black;"
-        :black -> nil
-        nil -> "opacity:0;"
-      end
-
-    phx_click =
-      if color do
-        nil
-      else
-        "make_move:#{x},#{y}"
-      end
 
     props = %{
       cx: x_pos,
       cy: y_pos,
       r: @stone_radius,
-      style: style,
-      phx_click: phx_click
+      style: stone_style(color),
+      phx_click: stone_phx_click(color, x, y)
     }
 
     circle(props)
+  end
+
+  defp stone_style(color) do
+    case color do
+      :white -> "fill:white;stroke:black;"
+      :black -> nil
+      nil -> "opacity:0;"
+    end
+  end
+
+  defp stone_phx_click(color, x, y) do
+    if color do
+      nil
+    else
+      "make_move:#{x},#{y}"
+    end
   end
 
   defp circle(%{cx: cx, cy: cy, r: r} = props) do
