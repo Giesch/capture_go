@@ -2,10 +2,10 @@ defmodule CaptureGoWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :capture_go
 
   socket "/socket", CaptureGoWeb.UserSocket,
-    websocket: true,
+    websocket: [timeout: 45_000],
     longpoll: false
 
-  socket "/live", Phoenix.LiveView.Socket
+  socket "/live", Phoenix.LiveView.Socket, websocket: [timeout: 45_000]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
