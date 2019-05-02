@@ -16,7 +16,7 @@
           <strong><%= game.name %></strong> (<%= game.host.username %>)
           <br />
 
-          <%= if @current_user.id != game.host_id do %>
+          <%= if @current_user && @current_user.id != game.host_id do %>
             <%= game_link(@socket, game) %>
           <% end %>
         </li>
