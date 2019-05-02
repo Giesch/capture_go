@@ -33,9 +33,13 @@ defmodule CaptureGoWeb.LiveGame do
   def mount(%{current_user: current_user, game_id: game_id}, socket) do
     # TODO change this to not throw; return a 404
     game = Games.get_game!(game_id)
-    socket = GameAssigns.on_mount(socket, current_user, game, @topic_prefix)
+    socket = GameAssigns.on_mount(socket, current_user, game, game_topic(game))
     subscribe_to_game(game_id)
     {:ok, socket}
+  end
+
+  defp game_topic(%Game{id: id}) do
+    @topic_prefix <> Integer.to_string(id)
   end
 
   ###############
