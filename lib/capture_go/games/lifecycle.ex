@@ -60,7 +60,7 @@ defmodule CaptureGo.Games.Lifecycle do
   defp do_move(%Game{goban: goban} = game, color, point) do
     case Goban.move(goban, color, point) do
       {:ok, goban} ->
-        attrs = win_check(goban)
+        attrs = game_over_check(goban)
         {:ok, Game.changeset(game, attrs)}
 
       {:error, _reason} = failure ->
@@ -68,8 +68,24 @@ defmodule CaptureGo.Games.Lifecycle do
     end
   end
 
-  defp win_check(%Goban{} = goban) do
-    if goban.winner do
+  def pass(%Game{state: :started, goban: goban} = game, %User{} = user) do
+    case Game.player_color(game, user.id) do
+      {:ok, color} ->
+        {:ok, goban} = Goban.pass(goban, color)
+        attrs = game_over_check(goban)
+        {:ok, Game.changeset(game, attrs)}
+
+      {:error, _reason} ->
+        @error_unauthorized
+    end
+  end
+
+  def pass(%Game{state: state}, _user) do
+    invalid_for_state(state)
+  end
+
+  defp game_over_check(%Goban{} = goban) do
+    if Goban.over?(goban) do
       %{goban: goban, state: :over}
     else
       %{goban: goban}
@@ -79,6 +95,8 @@ defmodule CaptureGo.Games.Lifecycle do
   defp invalid_for_state(state) do
     {:error, {:invalid_for_state, state}}
   end
+
+  defp game_password_valid?(game, password)
 
   defp game_password_valid?(%Game{password_hash: nil}, _password) do
     true

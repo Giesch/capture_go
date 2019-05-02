@@ -13,7 +13,8 @@ defmodule CaptureGo.Goban do
             turn: :black,
             winner: nil,
             prisoners: %{black: 0, white: 0},
-            group_data: GroupData.new()
+            group_data: GroupData.new(),
+            just_passed: false
 
   def new(), do: %Goban{}
 
@@ -39,6 +40,26 @@ defmodule CaptureGo.Goban do
     GroupData.groups(group_data)
   end
 
+  def over?(%Goban{} = goban) do
+    goban.winner
+  end
+
+  def pass(%Goban{turn: turn} = goban, color) when turn == color do
+    {:ok, do_pass(goban)}
+  end
+
+  def pass(_goban, _color) do
+    {:error, :wrong_turn}
+  end
+
+  defp do_pass(%Goban{just_passed: false, turn: turn} = goban) do
+    %Goban{goban | just_passed: true, turn: opposite_color(turn)}
+  end
+
+  defp do_pass(%Goban{just_passed: true} = goban) do
+    %Goban{goban | winner: :inconclusive}
+  end
+
   ##################
   # Move procedure
   #
@@ -46,7 +67,7 @@ defmodule CaptureGo.Goban do
   defp validate_move(goban, color, point) do
     cond do
       goban.turn != color -> {:error, :wrong_turn}
-      goban.winner -> {:error, :game_over}
+      over?(goban) -> {:error, :game_over}
       !on_the_board?(goban, point) -> {:error, :off_board}
       !point_empty?(goban, point) -> {:error, :point_taken}
       is_suicide?(goban, point) -> {:error, :suicide}
@@ -97,7 +118,7 @@ defmodule CaptureGo.Goban do
   end
 
   defp flip_turn(%Goban{} = goban) do
-    %Goban{goban | turn: opposite_color(goban.turn)}
+    %Goban{goban | turn: opposite_color(goban.turn), just_passed: false}
   end
 
   ####################

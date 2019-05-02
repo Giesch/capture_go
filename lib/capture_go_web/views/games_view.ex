@@ -9,6 +9,18 @@ defmodule CaptureGoWeb.GamesView do
 
   alias CaptureGoWeb.LiveGame
   alias CaptureGo.Goban
+  alias CaptureGo.Accounts.User
+  alias CaptureGo.Games.Game
+
+  def participant?(game, user)
+
+  def participant?(%Game{state: :started} = game, %User{} = user) do
+    Game.participant?(game, user.id)
+  end
+
+  def participant?(_game, _user) do
+    false
+  end
 
   @margin 50
   @intersection_size_length 100

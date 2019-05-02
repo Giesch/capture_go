@@ -161,6 +161,31 @@ defmodule CaptureGo.GobanTest do
     assert goban.prisoners.white == 0
   end
 
+  describe "passing" do
+    test "passing alternates the turn" do
+      assert {:ok, goban} = Goban.new() |> Goban.pass(:black)
+      assert goban.turn == :white
+    end
+
+    test "passing for the other player is an error" do
+      assert {:error, :wrong_turn} == Goban.new() |> Goban.pass(:white)
+    end
+
+    test "both players passing ends the game" do
+      goban = Goban.new()
+      assert {:ok, goban} = Goban.pass(goban, :black)
+      assert {:ok, goban} = Goban.pass(goban, :white)
+      assert Goban.over?(goban)
+    end
+
+    test "one player passing and the other playing does not end the game" do
+      goban = Goban.new()
+      assert {:ok, goban} = Goban.pass(goban, :black)
+      assert {:ok, goban} = Goban.move(goban, :white, {2, 2})
+      refute Goban.over?(goban)
+    end
+  end
+
   def white_wins() do
     play_game([
       {:black, {4, 4}},

@@ -83,7 +83,13 @@ defmodule CaptureGo.Games do
   def move(%Game{} = game, %User{id: user_id}, point) do
     Lifecycle.move(game, user_id, point)
     |> update_on_success()
-    |> call_on_success(&broadcast_move(&1))
+    |> call_on_success(&broadcast_move/1)
+  end
+
+  def pass(%Game{} = game, %User{} = user) do
+    Lifecycle.pass(game, user)
+    |> update_on_success()
+    |> call_on_success(&broadcast_move/1)
   end
 
   defp broadcast_move(%Game{state: state} = game) do
