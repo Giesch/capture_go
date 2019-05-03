@@ -1,7 +1,7 @@
 defmodule CaptureGoWeb.GamesView do
   @moduledoc """
   Renders a go board with SVG.
-  "x", "y", and "rank" refer to coordinates on the board
+  "x", "y", and "rank" refer to go board coordinates
   "x_pos", "y_pos", and "position" refer to SVG coordinates
   """
 
@@ -11,8 +11,6 @@ defmodule CaptureGoWeb.GamesView do
   alias CaptureGo.Goban
   alias CaptureGo.Accounts.User
   alias CaptureGo.Games.Game
-
-  def participant?(game, user)
 
   def participant?(%Game{state: :started} = game, %User{} = user) do
     Game.participant?(game, user.id)
