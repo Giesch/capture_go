@@ -6,7 +6,6 @@ defmodule CaptureGoWeb.LiveGame do
   alias CaptureGoWeb.Endpoint
   alias CaptureGoWeb.GamesView
   alias Phoenix.LiveView
-  alias CaptureGoWeb.LiveGame.GameAssigns
 
   @topic_prefix "live_game:"
   @game_change_event "game_change"
@@ -33,9 +32,16 @@ defmodule CaptureGoWeb.LiveGame do
   def mount(%{current_user: current_user, game_id: game_id}, socket) do
     # TODO change this to not throw; return a 404
     game = Games.get_game!(game_id)
-    socket = GameAssigns.on_mount(socket, current_user, game, game_topic(game))
+    socket = on_mount_assigns(socket, current_user, game)
     subscribe_to_game(game_id)
     {:ok, socket}
+  end
+
+  defp on_mount_assigns(socket, current_user, game) do
+    socket
+    |> LiveView.assign(:game, game)
+    |> LiveView.assign(:game_topic, game_topic(game))
+    |> LiveView.assign(:current_user, current_user)
   end
 
   defp game_topic(%Game{id: id}) do
