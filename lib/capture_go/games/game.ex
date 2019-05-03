@@ -39,6 +39,16 @@ defmodule CaptureGo.Games.Game do
     end
   end
 
+  def active_player?(game, user_id) do
+    active_color = game.goban.turn
+
+    case player_color(game, user_id) do
+      {:ok, ^active_color} -> true
+      {:ok, _color} -> false
+      {:error, _reason} -> false
+    end
+  end
+
   @allowed_fields [
     :name,
     :host_color,

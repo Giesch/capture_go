@@ -1,7 +1,7 @@
 defmodule CaptureGoWeb.GamesView do
   @moduledoc """
   Renders a go board with SVG.
-  "x", "y", and "rank" refer to coordinates on the board
+  "x", "y", and "rank" refer to go board coordinates
   "x_pos", "y_pos", and "position" refer to SVG coordinates
   """
 
@@ -9,6 +9,38 @@ defmodule CaptureGoWeb.GamesView do
 
   alias CaptureGoWeb.LiveGame
   alias CaptureGo.Goban
+  alias CaptureGo.Accounts.User
+  alias CaptureGo.Games.Game
+
+  def pass_button(%Game{} = game, %User{} = user) do
+    active = Game.active_player?(game, user.id)
+
+    if show_pass_button?(game, user.id) do
+      ~E"""
+      <button class="button"
+        <%= pass_button_attrs(active) %>
+      >
+        Pass Turn
+      </button>
+      """
+    end
+  end
+
+  # handles nil current user
+  def pass_button(_game, _user), do: ""
+
+  defp show_pass_button?(game, user_id) do
+    Game.participant?(game, user_id) &&
+      game.state == :started
+  end
+
+  def pass_button_attrs(active) do
+    if active do
+      "phx-click=\"pass\""
+    else
+      "disabled"
+    end
+  end
 
   @margin 50
   @intersection_size_length 100

@@ -49,6 +49,13 @@ defmodule CaptureGoWeb.LiveGame do
     {:noreply, socket}
   end
 
+  def handle_event("pass", _value, socket) do
+    game = socket.assigns.game
+    user = socket.assigns.current_user
+    Games.pass(game, user)
+    {:noreply, socket}
+  end
+
   defp coord_to_point(coordinate) do
     [x, y] = String.split(coordinate, ",")
     {String.to_integer(x), String.to_integer(y)}

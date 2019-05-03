@@ -1,7 +1,15 @@
 <h1><%= @game.name %> (Game #<%= @game.id %>)</h1>
 
-<svg style="width:1000px;height:1000px;">
-  <%= nine_by_nine() %>
-  <%= star_points() %>
-  <%= render_stones(@game.goban) %>
-</svg>
+<div class="columns">
+  <div class="column">
+    <svg style="width:1000px;height:1000px;">
+      <%= nine_by_nine() %>
+      <%= star_points() %>
+      <%= render_stones(@game.goban) %>
+    </svg>
+  </div>
+
+  <div class="column">
+    <%= pass_button(@game, @current_user) %>
+  </div>
+</div>
