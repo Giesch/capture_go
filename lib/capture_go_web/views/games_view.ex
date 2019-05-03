@@ -12,12 +12,34 @@ defmodule CaptureGoWeb.GamesView do
   alias CaptureGo.Accounts.User
   alias CaptureGo.Games.Game
 
-  def participant?(%Game{state: :started} = game, %User{} = user) do
-    Game.participant?(game, user.id)
+  def pass_button(%Game{} = game, %User{} = user) do
+    active = Game.active_player?(game, user.id)
+
+    if show_pass_button?(game, user.id) do
+      ~E"""
+      <button class="button"
+        <%= pass_button_attrs(active) %>
+      >
+        Pass Turn
+      </button>
+      """
+    end
   end
 
-  def participant?(_game, _user) do
-    false
+  # handles nil current user
+  def pass_button(_game, _user), do: ""
+
+  defp show_pass_button?(game, user_id) do
+    Game.participant?(game, user_id) &&
+      game.state == :started
+  end
+
+  def pass_button_attrs(active) do
+    if active do
+      "phx-click=\"pass\""
+    else
+      "disabled"
+    end
   end
 
   @margin 50
