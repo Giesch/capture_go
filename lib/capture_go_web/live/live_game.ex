@@ -99,6 +99,8 @@ defmodule CaptureGoWeb.LiveGame do
   #
 
   @impl LiveView
+  def handle_info(msg, socket)
+
   def handle_info(
         %{topic: topic, event: @game_change_event, payload: %Game{} = game},
         %{assigns: %{game_topic: topic}} = socket
