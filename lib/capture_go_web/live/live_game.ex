@@ -6,7 +6,9 @@ defmodule CaptureGoWeb.LiveGame do
   alias CaptureGoWeb.Endpoint
   alias CaptureGoWeb.GamesView
   alias Phoenix.LiveView
-  alias CaptureGoWeb.LiveGame.GameAssigns
+
+  @topic_prefix "live_game:"
+  @game_change_event "game_change"
 
   ##################
   # View Functions
@@ -30,9 +32,20 @@ defmodule CaptureGoWeb.LiveGame do
   def mount(%{current_user: current_user, game_id: game_id}, socket) do
     # TODO change this to not throw; return a 404
     game = Games.get_game!(game_id)
-    socket = GameAssigns.on_mount(socket, current_user, game)
+    socket = on_mount_assigns(socket, current_user, game)
     subscribe_to_game(game_id)
     {:ok, socket}
+  end
+
+  defp on_mount_assigns(socket, current_user, game) do
+    socket
+    |> LiveView.assign(:game, game)
+    |> LiveView.assign(:game_topic, game_topic(game))
+    |> LiveView.assign(:current_user, current_user)
+  end
+
+  defp game_topic(%Game{id: id}) do
+    @topic_prefix <> Integer.to_string(id)
   end
 
   ###############
@@ -65,9 +78,6 @@ defmodule CaptureGoWeb.LiveGame do
   # PubSub Functions
   #
 
-  @topic_prefix "live_game:"
-  @game_change_event "game_change"
-
   def broadcast_game_change(%Game{id: id} = game) do
     Endpoint.broadcast(@topic_prefix <> "#{id}", @game_change_event, game)
   end
@@ -89,19 +99,16 @@ defmodule CaptureGoWeb.LiveGame do
   #
 
   @impl LiveView
-  def handle_info(%{topic: @topic_prefix <> game_id} = msg, socket) do
-    if String.to_integer(game_id) == socket.assigns.game.id do
-      {:noreply, handle_game_event(socket, msg.event, msg.payload)}
-    else
-      {:noreply, socket}
-    end
+  def handle_info(msg, socket)
+
+  def handle_info(
+        %{topic: topic, event: @game_change_event, payload: %Game{} = game},
+        %{assigns: %{game_topic: topic}} = socket
+      ) do
+    {:noreply, LiveView.assign(socket, :game, game)}
   end
 
-  def handle_game_event(socket, @game_change_event, %Game{} = game) do
-    LiveView.assign(socket, :game, game)
-  end
-
-  def handle_game_event(socket, _event, _payload) do
-    socket
+  def handle_info(_msg, socket) do
+    {:noreply, socket}
   end
 end
