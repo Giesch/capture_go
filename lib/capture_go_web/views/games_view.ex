@@ -21,9 +21,8 @@ defmodule CaptureGoWeb.GamesView do
     end
   end
 
-  def display_turn(%Goban{winner: winner, turn: turn}) do
-    # TODO should use fn instead of accessing winner
-    if winner do
+  def display_turn(%Goban{turn: turn} = goban) do
+    if Goban.over?(goban) do
       ""
     else
       color =
