@@ -54,7 +54,8 @@ defmodule CaptureGoWeb.LiveGame do
 
   @impl LiveView
   def handle_event("make_move:" <> coordinate, _value, socket) do
-    point = coord_to_point(coordinate)
+    [x, y] = String.split(coordinate, ",")
+    point = {String.to_integer(x), String.to_integer(y)}
     game = socket.assigns.game
     user = socket.assigns.current_user
     # TODO display errors
@@ -67,11 +68,6 @@ defmodule CaptureGoWeb.LiveGame do
     user = socket.assigns.current_user
     Games.pass(game, user)
     {:noreply, socket}
-  end
-
-  defp coord_to_point(coordinate) do
-    [x, y] = String.split(coordinate, ",")
-    {String.to_integer(x), String.to_integer(y)}
   end
 
   ####################

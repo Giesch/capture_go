@@ -2,6 +2,10 @@
 
 <div class="columns">
   <div class="column">
+    <span>
+      <%= display_turn(@game.goban) %>
+    </span>
+
     <svg style="width:1000px;height:1000px;">
       <%= nine_by_nine() %>
       <%= star_points() %>
@@ -10,6 +14,10 @@
   </div>
 
   <div class="column">
+    <span>
+      <%= display_winner(@game.goban) %>
+    </span>
+
     <%= pass_button(@game, @current_user) %>
   </div>
 </div>

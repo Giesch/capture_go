@@ -12,6 +12,29 @@ defmodule CaptureGoWeb.GamesView do
   alias CaptureGo.Accounts.User
   alias CaptureGo.Games.Game
 
+  def display_winner(%Goban{winner: winner}) do
+    case winner do
+      nil -> ""
+      :black -> "Black wins!"
+      :white -> "White wins!"
+      _ -> "Game Over"
+    end
+  end
+
+  def display_turn(%Goban{turn: turn} = goban) do
+    if Goban.over?(goban) do
+      ""
+    else
+      color =
+        case turn do
+          :white -> "White"
+          :black -> "Black"
+        end
+
+      "#{color} to play"
+    end
+  end
+
   def pass_button(%Game{} = game, %User{} = user) do
     active = Game.active_player?(game, user.id)
 
