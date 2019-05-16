@@ -58,8 +58,10 @@ defmodule CaptureGoWeb.LiveGame do
     point = {String.to_integer(x), String.to_integer(y)}
     game = socket.assigns.game
     user = socket.assigns.current_user
+
     # TODO display errors
     Games.move(game, user, point)
+
     {:noreply, socket}
   end
 

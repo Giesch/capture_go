@@ -10,9 +10,6 @@ defmodule CaptureGo.Games do
   alias CaptureGo.Repo
   alias CaptureGoWeb.{LiveGame, LiveLobby}
 
-  # TODO allow resignation and passing
-  # TODO background job for removing inactive games
-
   def get_game!(id) do
     Game
     |> Repo.get!(id)
@@ -80,7 +77,17 @@ defmodule CaptureGo.Games do
     |> call_on_success(&LiveLobby.broadcast_ended_game(&1))
   end
 
-  def move(%Game{} = game, %User{id: user_id}, point) do
+  def move(%Game{id: game_id}, %User{id: user_id}, point) do
+    game = get_game!(game_id)
+    do_move(game, user_id, point)
+  end
+
+  def move(game_id, %User{id: user_id}, point) do
+    game = get_game!(game_id)
+    do_move(game, user_id, point)
+  end
+
+  defp do_move(%Game{} = game, user_id, point) do
     Lifecycle.move(game, user_id, point)
     |> update_on_success()
     |> call_on_success(&broadcast_move/1)
