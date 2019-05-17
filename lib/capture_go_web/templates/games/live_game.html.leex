@@ -18,6 +18,9 @@
       <%= display_winner(@game.goban) %>
     </span>
 
-    <%= pass_button(@game, @current_user) %>
+    <%= pass_button(@game, @current_user) %> <br />
+
+    <%= resign_button(@game, @current_user) %>
   </div>
 </div>
+
