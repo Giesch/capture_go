@@ -49,6 +49,17 @@ defmodule CaptureGo.Games.Game do
     end
   end
 
+  def change_goban(game, new_goban) do
+    attrs =
+      if Goban.over?(new_goban) do
+        %{goban: new_goban, state: :over}
+      else
+        %{goban: new_goban}
+      end
+
+    changeset(game, attrs)
+  end
+
   @allowed_fields [
     :name,
     :host_color,

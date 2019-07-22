@@ -47,48 +47,48 @@ defmodule CaptureGo.Games.Lifecycle do
   def move(game, user_id, point)
 
   def move(%Game{state: :started} = game, user_id, point) do
-    case Game.player_color(game, user_id) do
-      {:ok, color} -> do_move(game, color, point)
-      {:error, _reason} -> @error_unauthorized
-    end
+    do_move = fn goban, color -> Goban.move(goban, color, point) end
+    do_with_player_color(game, user_id, do_move)
   end
 
   def move(%Game{state: state}, _user_id, _point) do
     invalid_for_state(state)
   end
 
-  defp do_move(%Game{goban: goban} = game, color, point) do
-    case Goban.move(goban, color, point) do
-      {:ok, goban} ->
-        attrs = game_over_check(goban)
-        {:ok, Game.changeset(game, attrs)}
-
-      {:error, _reason} = failure ->
-        failure
-    end
-  end
-
-  def pass(%Game{state: :started, goban: goban} = game, %User{} = user) do
-    case Game.player_color(game, user.id) do
-      {:ok, color} ->
-        {:ok, goban} = Goban.pass(goban, color)
-        attrs = game_over_check(goban)
-        {:ok, Game.changeset(game, attrs)}
-
-      {:error, _reason} ->
-        @error_unauthorized
-    end
+  def pass(%Game{state: :started} = game, %User{id: user_id}) do
+    do_with_player_color(game, user_id, &Goban.pass/2)
   end
 
   def pass(%Game{state: state}, _user) do
     invalid_for_state(state)
   end
 
-  defp game_over_check(%Goban{} = goban) do
-    if Goban.over?(goban) do
-      %{goban: goban, state: :over}
-    else
-      %{goban: goban}
+  def resign(game, user_id)
+
+  def resign(%Game{state: :started} = game, user_id) do
+    do_with_player_color(game, user_id, &Goban.resign/2)
+  end
+
+  def resign(%Game{state: state}, _user_id) do
+    invalid_for_state(state)
+  end
+
+  ##################################
+
+  # executes a function of the form:
+  # goban, color -> {:ok, goban} with the player's color
+  # returns a tuple of {:ok, game_changeset}, passing through errors
+  defp do_with_player_color(%Game{} = game, user_id, goban_fn) do
+    case Game.player_color(game, user_id) do
+      {:ok, color} -> apply_goban_fn(game, color, goban_fn)
+      {:error, _reason} -> @error_unauthorized
+    end
+  end
+
+  defp apply_goban_fn(%Game{} = game, color, goban_fn) do
+    case goban_fn.(game.goban, color) do
+      {:ok, new_goban} -> {:ok, Game.change_goban(game, new_goban)}
+      {:error, _reason} = failure -> failure
     end
   end
 
