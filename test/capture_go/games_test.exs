@@ -246,6 +246,58 @@ defmodule CaptureGo.GamesTest do
     end
   end
 
+  describe "pass" do
+    setup do
+      host = user_fixture()
+      challenger = user_fixture()
+      game = game_fixture(host_id: host.id)
+      assert {:ok, game} = Games.challenge(game, challenger)
+      {:ok, host: host, challenger: challenger, game: game}
+    end
+
+    test "passing makes it the opponent's turn",
+         %{game: game, challenger: challenger} do
+      assert {:ok, game} = Games.pass(game, challenger)
+      assert game.goban.turn == :white
+    end
+
+    test "two passes end the game",
+         %{game: game, host: host, challenger: challenger} do
+      assert {:ok, game} = Games.pass(game, challenger)
+      assert {:ok, game} = Games.pass(game, host)
+      assert game.state == :over
+    end
+
+    test "a player can't pass if it's not their turn",
+         %{game: game, challenger: challenger} do
+      assert {:ok, game} = Games.pass(game, challenger)
+      assert {:error, :wrong_turn} == Games.pass(game, challenger)
+    end
+  end
+
+  describe "resign" do
+    setup do
+      host = user_fixture()
+      challenger = user_fixture()
+      game = game_fixture(host_id: host.id)
+      assert {:ok, game} = Games.challenge(game, challenger)
+      {:ok, host: host, challenger: challenger, game: game}
+    end
+
+    test "resigning ends the game and the opponent wins",
+         %{game: game, challenger: challenger} do
+      assert {:ok, game} = Games.resign(game, challenger)
+      assert game.state == :over
+      assert game.goban.winner == :white
+    end
+
+    test "a player can resign during their opponent's turn",
+         %{game: game, host: host} do
+      assert {:ok, game} = Games.resign(game, host)
+      assert game.state == :over
+    end
+  end
+
   describe "lobby" do
     setup do
       host = user_fixture()
