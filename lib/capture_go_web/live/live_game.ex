@@ -72,6 +72,13 @@ defmodule CaptureGoWeb.LiveGame do
     {:noreply, socket}
   end
 
+  def handle_event("resign", _value, socket) do
+    game = socket.assigns.game
+    user = socket.assigns.current_user
+    Games.resign(game, user)
+    {:noreply, socket}
+  end
+
   ####################
   # PubSub Functions
   #
