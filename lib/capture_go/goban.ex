@@ -60,6 +60,11 @@ defmodule CaptureGo.Goban do
     %Goban{goban | winner: :inconclusive}
   end
 
+  def resign(%Goban{} = goban, color) when is_color(color) do
+    goban = %Goban{goban | winner: opposite_color(color)}
+    {:ok, goban}
+  end
+
   ##################
   # Move procedure
   #

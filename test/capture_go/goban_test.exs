@@ -186,6 +186,27 @@ defmodule CaptureGo.GobanTest do
     end
   end
 
+  describe "resignation" do
+    test "resigning ends the game" do
+      goban = Goban.new()
+      assert {:ok, goban} = Goban.resign(goban, :black)
+      assert Goban.over?(goban)
+    end
+
+    test "resigning makes the opponent win" do
+      goban = Goban.new()
+      assert {:ok, goban} = Goban.resign(goban, :black)
+      assert goban.winner == :white
+    end
+
+    test "a player may resign at any time" do
+      goban = Goban.new()
+      assert {:ok, goban} = Goban.resign(goban, :white)
+      assert Goban.over?(goban)
+      assert goban.winner == :black
+    end
+  end
+
   def white_wins() do
     play_game([
       {:black, {4, 4}},

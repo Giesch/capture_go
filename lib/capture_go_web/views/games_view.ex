@@ -36,30 +36,38 @@ defmodule CaptureGoWeb.GamesView do
   end
 
   def pass_button(%Game{} = game, %User{} = user) do
+    game_action_button(game, user, "pass", "Pass Turn")
+  end
+
+  def pass_button(_game, _nil_user), do: ""
+
+  def resign_button(%Game{} = game, %User{} = user) do
+    game_action_button(game, user, "resign", "Resign")
+  end
+
+  def resign_button(_game, _nil_user), do: ""
+
+  def game_action_button(%Game{} = game, %User{} = user, action, display) do
     active = Game.active_player?(game, user.id)
 
-    if show_pass_button?(game, user.id) do
+    if display_game_buttons?(game, user.id) do
       ~E"""
       <button class="button"
-        <%= pass_button_attrs(active) %>
+        <%= game_action_attrs(active, action) %>
       >
-        Pass Turn
+        <%= display %>
       </button>
       """
     end
   end
 
-  # handles nil current user
-  def pass_button(_game, _user), do: ""
-
-  defp show_pass_button?(game, user_id) do
-    Game.participant?(game, user_id) &&
-      game.state == :started
+  defp display_game_buttons?(game, user_id) do
+    Game.participant?(game, user_id) && game.state == :started
   end
 
-  def pass_button_attrs(active) do
-    if active do
-      "phx-click=\"pass\""
+  def game_action_attrs(button_active, phx_click) do
+    if button_active do
+      "phx-click=\"#{phx_click}\""
     else
       "disabled"
     end

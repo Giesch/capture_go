@@ -99,6 +99,12 @@ defmodule CaptureGo.Games do
     |> call_on_success(&broadcast_move/1)
   end
 
+  def resign(%Game{} = game, %User{id: user_id}) do
+    Lifecycle.resign(game, user_id)
+    |> update_on_success()
+    |> call_on_success(&broadcast_move/1)
+  end
+
   defp broadcast_move(%Game{state: state} = game) do
     LiveGame.broadcast_game_change(game)
 
