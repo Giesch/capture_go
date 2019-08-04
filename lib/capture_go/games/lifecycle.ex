@@ -6,6 +6,7 @@ defmodule CaptureGo.Games.Lifecycle do
   alias CaptureGo.Accounts.User
   alias CaptureGo.Games.Game
   alias CaptureGo.Goban
+  alias CaptureGo.Tuples
 
   @error_unauthorized {:error, :unauthorized}
 
@@ -77,19 +78,19 @@ defmodule CaptureGo.Games.Lifecycle do
 
   # executes a function of the form:
   # goban, color -> {:ok, goban} with the player's color
-  # returns a tuple of {:ok, game_changeset}, passing through errors
+  # returns a tuple of {:ok, game_changeset},
+  # passing through non-player-color errors
   defp do_with_player_color(%Game{} = game, user_id, goban_fn) do
-    case Game.player_color(game, user_id) do
-      {:ok, color} -> apply_goban_fn(game, color, goban_fn)
-      {:error, _reason} -> @error_unauthorized
+    apply_with_color = fn color ->
+      goban_fn.(game.goban, color)
+      |> Tuples.map_ok(fn new_goban ->
+        Game.change_goban(game, new_goban)
+      end)
     end
-  end
 
-  defp apply_goban_fn(%Game{} = game, color, goban_fn) do
-    case goban_fn.(game.goban, color) do
-      {:ok, new_goban} -> {:ok, Game.change_goban(game, new_goban)}
-      {:error, _reason} = failure -> failure
-    end
+    Game.player_color(game, user_id)
+    |> Tuples.put_err(:unauthorized)
+    |> Tuples.and_then(apply_with_color)
   end
 
   defp invalid_for_state(state) do
