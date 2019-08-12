@@ -23,8 +23,8 @@ defmodule CaptureGoWeb.Auth do
     user_id && Accounts.get_user(user_id)
   end
 
-  def login_by_email_and_pass(conn, email, given_pass) do
-    case Accounts.authenticate_by_email_and_password(email, given_pass) do
+  def login_by_username_and_pass(conn, username, given_pass) do
+    case Accounts.authenticate_by_username_and_password(username, given_pass) do
       {:ok, user} -> {:ok, login(conn, user)}
       {:error, _reason} -> {:error, conn}
     end

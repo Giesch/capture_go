@@ -13,11 +13,6 @@
   </div>
 
   <div>
-    <%= text_input f, :email, placeholder: "Email" %>
-    <%= error_tag f, :email %>
-  </div>
-
-  <div>
     <%= password_input f, :password, placeholder: "Password" %>
     <%= error_tag f, :password %>
   </div>

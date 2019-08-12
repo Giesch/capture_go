@@ -49,12 +49,14 @@ defmodule CaptureGo.Accounts do
     User.registration_changeset(user, attrs)
   end
 
-  def authenticate_by_email_and_password(email, given_pw) do
-    user = from(u in User, where: u.email == ^email) |> Repo.one()
+  def authenticate_by_username_and_password(username, pw) do
+    user =
+      from(u in User, where: u.username == ^username)
+      |> Repo.one()
 
     cond do
       !user -> error_not_found()
-      Argon2.verify_pass(given_pw, user.password_hash) -> {:ok, user}
+      Argon2.verify_pass(pw, user.password_hash) -> {:ok, user}
       true -> {:error, :unauthorized}
     end
   end

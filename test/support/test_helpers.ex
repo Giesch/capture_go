@@ -7,7 +7,6 @@ defmodule CaptureGo.TestHelpers do
 
     defaults = %{
       username: username,
-      email: attrs[:email] || "#{username}@example.com",
       password: attrs[:password] || "supersecret"
     }
 
