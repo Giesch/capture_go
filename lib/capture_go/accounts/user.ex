@@ -5,7 +5,6 @@ defmodule CaptureGo.Accounts.User do
   alias CaptureGo.Games
 
   schema "users" do
-    field :email, :string
     field :password, :string, virtual: true
     field :password_hash, :string
     field :username, :string
@@ -23,9 +22,9 @@ defmodule CaptureGo.Accounts.User do
 
   def registration_changeset(user, attrs) do
     user
-    |> cast(attrs, [:username, :email, :password])
+    |> cast(attrs, [:username, :password])
     |> validate_username()
-    |> validate_email_and_password()
+    |> validate_password()
     |> put_password_hash()
   end
 
@@ -42,11 +41,10 @@ defmodule CaptureGo.Accounts.User do
     |> unique_constraint(:username)
   end
 
-  defp validate_email_and_password(changeset) do
+  defp validate_password(changeset) do
     changeset
-    |> validate_required([:email, :password])
+    |> validate_required([:password])
     |> validate_length(:password, min: 6, max: 100)
-    |> unique_constraint(:email)
   end
 
   defp put_password_hash(changeset) do

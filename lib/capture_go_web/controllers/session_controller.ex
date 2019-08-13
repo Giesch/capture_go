@@ -8,8 +8,8 @@ defmodule CaptureGoWeb.SessionController do
     render(conn, "new.html")
   end
 
-  def create(conn, %{"session" => %{"email" => email, "password" => pw}}) do
-    case Auth.login_by_email_and_pass(conn, email, pw) do
+  def create(conn, %{"session" => %{"username" => username, "password" => pw}}) do
+    case Auth.login_by_username_and_pass(conn, username, pw) do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back!")
@@ -17,7 +17,7 @@ defmodule CaptureGoWeb.SessionController do
 
       {:error, conn} ->
         conn
-        |> put_flash(:error, "Invalid email/password combination")
+        |> put_flash(:error, "Invalid username/password combination")
         |> render("new.html")
     end
   end

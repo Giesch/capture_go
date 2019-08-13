@@ -4,7 +4,7 @@
 
     <%= form_for @conn, Routes.session_path(@conn, :create), [as: :session], fn f -> %>
       <label class="label">
-        <%= text_input f, :email, placeholder: "Email" %>
+        <%= text_input f, :username, placeholder: "Username" %>
       </label>
 
       <label class="label">

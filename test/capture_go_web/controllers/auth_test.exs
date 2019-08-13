@@ -65,20 +65,23 @@ defmodule CaptureGoWeb.AuthTest do
     assert conn.assigns.current_user == nil
   end
 
+  @username "my_username"
+  @password "secret"
+
   test "login with a valid username and password", %{conn: conn} do
-    user = user_fixture(username: "me", email: "me@test", password: "secret")
-    {:ok, conn} = Auth.login_by_email_and_pass(conn, "me@test", "secret")
+    user = user_fixture(username: @username, password: @password)
+    {:ok, conn} = Auth.login_by_username_and_pass(conn, @username, @password)
     assert conn.assigns.current_user.id == user.id
   end
 
   test "login with a not found user", %{conn: conn} do
-    result = Auth.login_by_email_and_pass(conn, "me@test", "secret")
+    result = Auth.login_by_username_and_pass(conn, @username, @password)
     assert {:error, ^conn} = result
   end
 
   test "login with password mismatch", %{conn: conn} do
-    _user = user_fixture(username: "me", email: "me@test", password: "secret")
-    result = Auth.login_by_email_and_pass(conn, "me@test", "whoops")
+    _user = user_fixture(username: @username, password: @password)
+    result = Auth.login_by_username_and_pass(conn, @username, "whoops")
     assert {:error, ^conn} = result
   end
 end
