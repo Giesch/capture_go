@@ -4,7 +4,7 @@
       <button class="button is-info" phx-click="open_create_game">
         Create Game
       </button>
-    <%= else %>
+    <% else %>
       <%= link "Log in", to: Routes.session_path(@socket, :new) %> to create a game!
     <% end %>
   </div>
