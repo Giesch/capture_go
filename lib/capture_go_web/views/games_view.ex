@@ -122,9 +122,6 @@ defmodule CaptureGoWeb.GamesView do
     {:ok, color} = Goban.stone_at(goban, point)
     legal = Goban.legal?(goban, goban.turn, point)
 
-    # TODO check if illegal moves contains the point
-    # if not, add an on-hover
-
     props = %{
       cx: x_pos,
       cy: y_pos,
@@ -136,12 +133,11 @@ defmodule CaptureGoWeb.GamesView do
     circle(props)
   end
 
-  # TODO use your classes
   defp stone_style(color, legal) do
     case {color, legal} do
       {:white, _} -> "fill:white;stroke:black;"
       {:black, _} -> nil
-      # TODO appropriate color
+      # TODO use the appropriate color
       {nil, true} -> "class=\"legal-move\""
       {nil, false} -> "opacity:0;"
     end

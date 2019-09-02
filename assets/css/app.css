@@ -2,14 +2,6 @@
 
 @import "./bulma.min.css";
 
-/* .white-stone { */
-/*   fill:white; */
-/*   stroke:black; */
-/* } */
-
-/* .black-stone { */
-/* } */
-
 .legal-move {
   opacity: 0;
 }
