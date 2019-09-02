@@ -14,7 +14,8 @@ defmodule CaptureGo.Goban do
             winner: nil,
             prisoners: %{black: 0, white: 0},
             group_data: GroupData.new(),
-            just_passed: false
+            just_passed: false,
+            illegal_moves: MapSet.new()
 
   def new(), do: %Goban{}
 
@@ -26,7 +27,7 @@ defmodule CaptureGo.Goban do
   end
 
   def legal?(%Goban{} = goban, color, point) when is_color(color) do
-    :ok == validate_move(goban, color, point)
+    !MapSet.member?(goban.illegal_moves, point)
   end
 
   def stone_at(%Goban{} = goban, point) do
@@ -87,6 +88,7 @@ defmodule CaptureGo.Goban do
     |> perform_captures()
     |> win_check()
     |> flip_turn()
+    |> put_illegal_moves()
   end
 
   defp create_and_connect_group(%Goban{} = goban, color, point) do
@@ -124,6 +126,19 @@ defmodule CaptureGo.Goban do
 
   defp flip_turn(%Goban{} = goban) do
     %Goban{goban | turn: opposite_color(goban.turn), just_passed: false}
+  end
+
+  defp put_illegal_moves(%Goban{} = goban) do
+    %Goban{goban | illegal_moves: illegal_moves(goban)}
+  end
+
+  defp illegal_moves(%Goban{} = goban) do
+    points = for i <- 0..9, j <- 0..9, do: {i, j}
+
+    for p <- points,
+        :ok != validate_move(goban, goban.turn, p),
+        into: MapSet.new(),
+        do: p
   end
 
   ####################
